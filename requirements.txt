@@ -1,0 +1,14 @@
+# Core
+torch>=2.3.0
+transformers>=4.44.0
+datasets>=2.20.0
+tokenizers>=0.19.0
+
+# Training
+wandb>=0.17.0
+
+# Optional — faster attention (recommended for GPU runs)
+# flash-attn>=2.5.0   # pip install flash-attn --no-build-isolation
+
+# Optional — faster Triton ops (Parcae uses these; not required for baseline)
+# triton>=3.0.0
