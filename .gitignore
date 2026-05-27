@@ -41,10 +41,6 @@ data/
 # W&B
 wandb/
 
-# Logs
-*.log
-logs/
-
 # OS
 .DS_Store
 Thumbs.db
