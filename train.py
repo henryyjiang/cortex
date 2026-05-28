@@ -335,14 +335,19 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--memory_slots",         type=int,   default=0)
     p.add_argument("--memory_slots_iter",    type=int,   default=0)
     p.add_argument("--training_mode",        default="combined",
-                   choices=["parcae", "retrofit", "combined"],
+                   choices=["parcae", "retrofit", "combined",
+                            "parcae_retrofit", "mcleish_parcae"],
                    help=(
-                       "parcae   — random init, scalable_init=True,  h0=TruncNormal "
+                       "parcae          — random init, scalable_init=True,  h0=TruncNormal "
                        "(Parcae from-scratch design). "
-                       "retrofit — Pythia weights, scalable_init=False, h0=z0 "
+                       "retrofit        — Pythia weights, scalable_init=False, h0=z0 "
                        "(McLeish-style, fast convergence, diagnostic). "
-                       "combined — Pythia weights, scalable_init=False, h0=z0 "
-                       "(target mode: pretrained init + Parcae stability guarantees)."
+                       "combined        — Pythia weights, scalable_init=False, h0=z0 "
+                       "(target mode: pretrained init + Parcae stability guarantees). "
+                       "parcae_retrofit — Pythia weights, scalable_init=False, h0=random, prelude_norm=True "
+                       "(Parcae Table 4: full Parcae stability stack on pretrained weights). "
+                       "mcleish_parcae  — Pythia weights, scalable_init=False, h0=z0, prelude_norm=True "
+                       "(McLeish h0=z0 init + Parcae prelude_norm stability improvement)."
                    ))
 
     # Recurrence — µbwd is derived automatically as ⌈µrec/2⌉
@@ -495,9 +500,13 @@ def train(args: argparse.Namespace) -> None:
         # late-stage state explosion at 1B+ scale).  For retrofit/combined it adds
         # ~+1.2 nats at T=1 on Pile by normalising the pre-block output before LTI,
         # disrupting the pretrained distribution the loop layers expect.
-        "parcae":   (True,  True,  "random", True),
-        "retrofit": (False, False, "z0",     False),
-        "combined": (False, False, "z0",     False),
+        "parcae":          (True,  True,  "random", True),
+        "retrofit":        (False, False, "z0",     False),
+        "combined":        (False, False, "z0",     False),
+        # Experimental: Parcae Table 4 retrofitting (pretrained weights + full Parcae stability)
+        "parcae_retrofit": (False, False, "random", True),
+        # Experimental: McLeish h0=z0 init + Parcae prelude_norm on pretrained weights
+        "mcleish_parcae":  (False, False, "z0",     True),
     }
     _from_scratch, _scalable_init, _h0_init, _prelude_norm = _mode_cfg[args.training_mode]
 
