@@ -495,20 +495,22 @@ def train(args: argparse.Namespace) -> None:
     if main:
         print(f"Loading {args.model_name} ...")
     _mode_cfg = {
-        # (from_scratch, scalable_init, h0_init, prelude_norm)
+        # (from_scratch, scalable_init, h0_init, prelude_norm, retrofit_surgery)
         # prelude_norm=True only for Parcae from-scratch (Parcae App. J: prevents
         # late-stage state explosion at 1B+ scale).  For retrofit/combined it adds
         # ~+1.2 nats at T=1 on Pile by normalising the pre-block output before LTI,
         # disrupting the pretrained distribution the loop layers expect.
-        "parcae":          (True,  True,  "random", True),
-        "retrofit":        (False, False, "z0",     False),
-        "combined":        (False, False, "z0",     False),
+        # retrofit_surgery=True: use RETROFIT_SPLITS (non-contiguous layer selection,
+        # discarding middle layers per McLeish et al.).  Only valid with pretrained init.
+        "parcae":          (True,  True,  "random", True,  False),
+        "retrofit":        (False, False, "z0",     False, True),
+        "combined":        (False, False, "z0",     False, False),
         # Experimental: Parcae Table 4 retrofitting (pretrained weights + full Parcae stability)
-        "parcae_retrofit": (False, False, "random", True),
-        # Experimental: McLeish h0=z0 init + Parcae prelude_norm on pretrained weights
-        "mcleish_parcae":  (False, False, "z0",     True),
+        "parcae_retrofit": (False, False, "random", True,  False),
+        # Experimental: McLeish h0=z0 init + Parcae prelude_norm + McLeish layer surgery
+        "mcleish_parcae":  (False, False, "z0",     True,  True),
     }
-    _from_scratch, _scalable_init, _h0_init, _prelude_norm = _mode_cfg[args.training_mode]
+    _from_scratch, _scalable_init, _h0_init, _prelude_norm, _retrofit_surgery = _mode_cfg[args.training_mode]
 
     model, cfg = build_cortex_gpt(
         model_name        = args.model_name,
@@ -520,6 +522,7 @@ def train(args: argparse.Namespace) -> None:
         scalable_init     = _scalable_init,
         h0_init           = _h0_init,
         prelude_norm      = _prelude_norm,
+        retrofit_surgery   = _retrofit_surgery,
     )
     cfg.mean_recurrence = args.mean_recurrence
     # µbwd = ⌈µrec/2⌉ enforced at init (Parcae App. I)

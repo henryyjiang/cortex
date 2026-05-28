@@ -85,11 +85,25 @@ class CortexConfig:
     #               correct for retrofitting (McLeish et al.).
     h0_init: str = "z0"
 
+    # Retrofit layer surgery: index in the pretrained model's layer list where the
+    # loop block begins.  None = contiguous assignment (all layers used in order).
+    # When set, pre = layers[:n_pre], loop = layers[loop_start_idx:loop_start_idx+n_loop],
+    # coda = last n_coda layers.  Intermediate layers are discarded.
+    loop_start_idx: Optional[int] = None
+
 
 LAYER_SPLITS: dict[str, tuple[int, int, int]] = {
     "EleutherAI/pythia-160m": (2, 8, 2),
     "EleutherAI/pythia-1b":   (4, 16, 4),
     "EleutherAI/pythia-410m": (3, 12, 3),
+}
+
+# Retrofit surgery splits: (n_pre, n_loop, n_coda, loop_start_idx)
+# Pre = layers[0:n_pre], loop = layers[loop_start_idx:loop_start_idx+n_loop],
+# coda = last n_coda layers.  Layers between pre and loop_start are discarded.
+# For pythia-160m (12 layers): 2 pre + skip 2-5 + 4 loop (6-9) + 2 coda (10-11).
+RETROFIT_SPLITS: dict[str, tuple[int, int, int, int]] = {
+    "EleutherAI/pythia-160m": (2, 4, 2, 6),
 }
 
 
@@ -318,17 +332,37 @@ class CortexGPT(nn.Module):
 
         n_pre, n_loop, n_coda = config.n_pre, config.n_loop, config.n_coda
         n_total = len(neox.layers)
-        assert n_pre + n_loop + n_coda == n_total, (
-            f"Layer split {n_pre}+{n_loop}+{n_coda}={n_pre+n_loop+n_coda} "
-            f"≠ model layers {n_total}"
-        )
+        loop_start = config.loop_start_idx
+
+        if loop_start is None:
+            # Contiguous: every pretrained layer is assigned to a block.
+            assert n_pre + n_loop + n_coda == n_total, (
+                f"Layer split {n_pre}+{n_loop}+{n_coda}={n_pre+n_loop+n_coda} "
+                f"≠ model layers {n_total}"
+            )
+            pre_idx  = list(range(0, n_pre))
+            loop_idx = list(range(n_pre, n_pre + n_loop))
+            coda_idx = list(range(n_pre + n_loop, n_total))
+        else:
+            # McLeish surgery: non-contiguous selection; layers between pre and
+            # loop_start are discarded, as are any layers between loop end and coda.
+            assert loop_start >= n_pre, (
+                f"loop_start_idx {loop_start} must be ≥ n_pre {n_pre}"
+            )
+            assert loop_start + n_loop <= n_total - n_coda, (
+                f"loop block [{loop_start}:{loop_start+n_loop}] overlaps coda "
+                f"(last {n_coda} of {n_total})"
+            )
+            pre_idx  = list(range(0, n_pre))
+            loop_idx = list(range(loop_start, loop_start + n_loop))
+            coda_idx = list(range(n_total - n_coda, n_total))
 
         # ── Pythia components ───────────────────────────────────────────────
         self.embed_in    = neox.embed_in
         self.emb_dropout = neox.emb_dropout
-        self.pre_layers  = nn.ModuleList(list(neox.layers[:n_pre]))
-        self.loop_layers = nn.ModuleList(list(neox.layers[n_pre:n_pre + n_loop]))
-        self.coda_layers = nn.ModuleList(list(neox.layers[n_pre + n_loop:]))
+        self.pre_layers  = nn.ModuleList([neox.layers[i] for i in pre_idx])
+        self.loop_layers = nn.ModuleList([neox.layers[i] for i in loop_idx])
+        self.coda_layers = nn.ModuleList([neox.layers[i] for i in coda_idx])
         self.final_norm  = neox.final_layer_norm
         self.embed_out   = base_model.embed_out
 
@@ -704,13 +738,22 @@ def build_cortex_gpt(
     scalable_init:      bool         = True,
     h0_init:            str          = "z0",
     prelude_norm:       bool         = True,
+    retrofit_surgery:    bool         = False,
 ) -> tuple[CortexGPT, CortexConfig]:
     from transformers import AutoModelForCausalLM, AutoConfig
 
-    split = LAYER_SPLITS.get(model_name)
-    if split is None:
-        raise ValueError(f"Unknown model {model_name!r}. Add it to LAYER_SPLITS.")
-    n_pre, n_loop, n_coda = split
+    if retrofit_surgery:
+        assert not from_scratch, "retrofit_surgery requires pretrained weights (from_scratch=False)"
+        msplit = RETROFIT_SPLITS.get(model_name)
+        if msplit is None:
+            raise ValueError(f"Retrofit surgery not configured for {model_name!r}. Add to RETROFIT_SPLITS.")
+        n_pre, n_loop, n_coda, loop_start_idx = msplit
+    else:
+        split = LAYER_SPLITS.get(model_name)
+        if split is None:
+            raise ValueError(f"Unknown model {model_name!r}. Add it to LAYER_SPLITS.")
+        n_pre, n_loop, n_coda = split
+        loop_start_idx = None
 
     if from_scratch:
         cfg_hf = AutoConfig.from_pretrained(model_name, trust_remote_code=trust_remote_code)
@@ -736,6 +779,7 @@ def build_cortex_gpt(
         scalable_init     = scalable_init,
         h0_init           = h0_init,
         prelude_norm      = prelude_norm,
+        loop_start_idx    = loop_start_idx,
     )
 
     model = CortexGPT(base, cfg)
