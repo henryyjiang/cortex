@@ -7,6 +7,8 @@
 #SBATCH -t 12:00:00
 #SBATCH -q inferno
 #SBATCH -o logs/Report-%j.out
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=henryyjiang42@gmail.com
 
 cd $SLURM_SUBMIT_DIR
 
