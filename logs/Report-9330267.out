@@ -1,0 +1,35 @@
+---------------------------------------
+Begin Slurm Prolog: May-29-2026 21:50:09
+Job ID:    9330267
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job4.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading EleutherAI/pythia-160m ...
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 3528.55it/s]
+Params: 134,564,352 total, 134,564,352 trainable
+Layer split: Pre=2, Loop=8, Coda=2
+mu_rec=8, mu_bwd=4 (= ceil(8/2))
+Effective batch: 32768 tokens = 16 seqs x 2048 tok
+Grad accum: 4 | World size: 1
+Max steps: 15,258 | Warmup: 152 | Cooldown: 1525
+Curriculum: mu_rec ramps 1->8 over 3800 steps
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /storage/home/hcoda1/3/hjiang420/.netrc.
+wandb: Currently logged in as: henryyjiang42 (henryyjiang42-georgia-institute-of-technology) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run oqtmyr45
+wandb: Tracking run with wandb version 0.27.0
+wandb: Run data is saved locally in runs/mcleish-parcae-verify/wandb/run-20260529_215055-oqtmyr45
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run mcleish-parcae-verify
+wandb: ⭐️ View project at https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt
+wandb: 🚀 View run at https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt/runs/oqtmyr45
