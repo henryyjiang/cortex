@@ -30,4 +30,4 @@ python train.py \
     --out_dir runs/retrofit-verify-2b5 \
     --wandb_project cortex-gpt \
     --log_interval 10 \
-    --save_interval 2000
+    --save_interval 10000
