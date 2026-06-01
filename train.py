@@ -334,20 +334,17 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--model_name",           default="EleutherAI/pythia-160m")
     p.add_argument("--memory_slots",         type=int,   default=0)
     p.add_argument("--memory_slots_iter",    type=int,   default=0)
-    p.add_argument("--training_mode",        default="combined",
-                   choices=["parcae", "retrofit", "combined",
-                            "parcae_retrofit", "mcleish_parcae"],
+    p.add_argument("--training_mode",        default="cortex",
+                   choices=["cortex", "parcae", "retrofit", "cortex_retrofit"],
                    help=(
-                       "parcae          — random init, scalable_init=True,  h0=TruncNormal "
-                       "(Parcae from-scratch design). "
-                       "retrofit        — Pythia weights, scalable_init=False, h0=z0 "
-                       "(McLeish-style, fast convergence, diagnostic). "
-                       "combined        — Pythia weights, scalable_init=False, h0=z0 "
-                       "(target mode: pretrained init + Parcae stability guarantees). "
-                       "parcae_retrofit — Pythia weights, scalable_init=False, h0=random, prelude_norm=True "
-                       "(Parcae Table 4: full Parcae stability stack on pretrained weights). "
-                       "mcleish_parcae  — Pythia weights, scalable_init=False, h0=z0, prelude_norm=True "
-                       "(McLeish h0=z0 init + Parcae prelude_norm stability improvement)."
+                       "cortex          — (default) from scratch, scalable_init=True, h0=TruncNormal, "
+                       "prelude_norm=True. Full Cortex architecture with Parcae training recipe. "
+                       "parcae          — from scratch, same init as cortex. Pure Parcae baseline "
+                       "(no Cortex-specific components); useful for ablations. "
+                       "retrofit        — Pythia weights, scalable_init=False, h0=z0, prelude_norm=False, "
+                       "McLeish layer surgery. Diagnostic only; not expected to converge at <100B tokens. "
+                       "cortex_retrofit — Pythia weights + McLeish surgery, then Parcae+Cortex training: "
+                       "scalable_init=False, h0=z0, prelude_norm=True."
                    ))
 
     # Recurrence — µbwd is derived automatically as ⌈µrec/2⌉
@@ -496,19 +493,14 @@ def train(args: argparse.Namespace) -> None:
         print(f"Loading {args.model_name} ...")
     _mode_cfg = {
         # (from_scratch, scalable_init, h0_init, prelude_norm, retrofit_surgery)
-        # prelude_norm=True only for Parcae from-scratch (Parcae App. J: prevents
-        # late-stage state explosion at 1B+ scale).  For retrofit/combined it adds
-        # ~+1.2 nats at T=1 on Pile by normalising the pre-block output before LTI,
-        # disrupting the pretrained distribution the loop layers expect.
-        # retrofit_surgery=True: use RETROFIT_SPLITS (non-contiguous layer selection,
-        # discarding middle layers per McLeish et al.).  Only valid with pretrained init.
+        # cortex/parcae: from-scratch with Parcae recipe (scalable_init + prelude_norm).
+        # retrofit modes: pretrained weights + McLeish surgery; prelude_norm=False for
+        # plain retrofit (disrupts pretrained dist), True for cortex_retrofit which
+        # pairs surgery with the full Parcae stability stack.
+        "cortex":          (True,  True,  "random", True,  False),
         "parcae":          (True,  True,  "random", True,  False),
         "retrofit":        (False, False, "z0",     False, True),
-        "combined":        (False, False, "z0",     False, False),
-        # Experimental: Parcae Table 4 retrofitting (pretrained weights + full Parcae stability)
-        "parcae_retrofit": (False, False, "random", True,  False),
-        # Experimental: McLeish h0=z0 init + Parcae prelude_norm + McLeish layer surgery
-        "mcleish_parcae":  (False, False, "z0",     True,  True),
+        "cortex_retrofit": (False, False, "z0",     True,  True),
     }
     _from_scratch, _scalable_init, _h0_init, _prelude_norm, _retrofit_surgery = _mode_cfg[args.training_mode]
 
@@ -522,7 +514,7 @@ def train(args: argparse.Namespace) -> None:
         scalable_init     = _scalable_init,
         h0_init           = _h0_init,
         prelude_norm      = _prelude_norm,
-        retrofit_surgery   = _retrofit_surgery,
+        retrofit_surgery  = _retrofit_surgery,
     )
     cfg.mean_recurrence = args.mean_recurrence
     # µbwd = ⌈µrec/2⌉ enforced at init (Parcae App. I)

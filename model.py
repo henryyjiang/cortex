@@ -1,5 +1,5 @@
 """
-CortexGPT: Pre/Loop/Coda architecture retrofitted from Pythia (GPTNeoX).
+CortexGPT: Pre/Loop/Coda architecture with Parcae LTI injection on Pythia (GPTNeoX).
 
 Key components
 --------------
@@ -83,7 +83,7 @@ class CortexConfig:
     #               from-scratch training.
     #   "z0"      — clone of pre-block output: preserves pretrained representations,
     #               correct for retrofitting (McLeish et al.).
-    h0_init: str = "z0"
+    h0_init: str = "random"
 
     # Retrofit layer surgery: index in the pretrained model's layer list where the
     # loop block begins.  None = contiguous assignment (all layers used in order).
@@ -507,17 +507,10 @@ class CortexGPT(nn.Module):
 
     def _init_state(self, reference: torch.Tensor) -> torch.Tensor:
         """
-        h₀ = z0.detach() for retrofitting from pretrained weights.
+        h₀ ~ TruncNormal(0, 1/√D) for from-scratch training (Parcae §4.1).
 
-        TruncNormal is correct for from-scratch training (Parcae §4.1): random
-        h₀ gives gradient diversity across iterations.  For retrofitting it is
-        destructive: the random state is injected via LTI every iteration,
-        completely corrupting the activations the pretrained coda expects, and
-        the model descends from loss >> random rather than near the Pythia
-        baseline.  Starting from z0 means iteration 1 ≈ standard Pythia
-        forward; the recurrence then builds incrementally on top of that signal.
-        The "near-no-op" concern does not apply here because the pretrained loop
-        layers already break the symmetry.
+        "z0" mode clones the prelude output; used only when retrofitting from
+        pretrained weights (retrofit/combined training modes).
         """
         if self.config.h0_init == "z0":
             return reference.detach().clone()
@@ -734,11 +727,11 @@ def build_cortex_gpt(
     trust_remote_code:  bool         = False,
     torch_dtype:        torch.dtype  = torch.bfloat16,
     device_map:         str          = "cpu",
-    from_scratch:       bool         = False,
+    from_scratch:       bool         = True,
     scalable_init:      bool         = True,
-    h0_init:            str          = "z0",
+    h0_init:            str          = "random",
     prelude_norm:       bool         = True,
-    retrofit_surgery:    bool         = False,
+    retrofit_surgery:   bool         = False,
 ) -> tuple[CortexGPT, CortexConfig]:
     from transformers import AutoModelForCausalLM, AutoConfig
 
