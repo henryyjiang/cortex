@@ -335,12 +335,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--memory_slots",         type=int,   default=0)
     p.add_argument("--memory_slots_iter",    type=int,   default=0)
     p.add_argument("--training_mode",        default="cortex",
-                   choices=["cortex", "parcae", "retrofit", "cortex_retrofit"],
+                   choices=["cortex", "parcae", "vanilla", "retrofit", "cortex_retrofit"],
                    help=(
                        "cortex          — (default) from scratch, scalable_init=True, h0=TruncNormal, "
                        "prelude_norm=True. Full Cortex architecture with Parcae training recipe. "
                        "parcae          — from scratch, same init as cortex. Pure Parcae baseline "
                        "(no Cortex-specific components); useful for ablations. "
+                       "vanilla         — from scratch, no prelude_norm. Standard transformer baseline; "
+                       "use with --mean_recurrence 1 --curriculum_steps 0. "
                        "retrofit        — Pythia weights, scalable_init=False, h0=z0, prelude_norm=False, "
                        "McLeish layer surgery. Diagnostic only; not expected to converge at <100B tokens. "
                        "cortex_retrofit — Pythia weights + McLeish surgery, then Parcae+Cortex training: "
@@ -499,6 +501,8 @@ def train(args: argparse.Namespace) -> None:
         # pairs surgery with the full Parcae stability stack.
         "cortex":          (True,  True,  "random", True,  False),
         "parcae":          (True,  True,  "random", True,  False),
+        # vanilla: standard transformer baseline — use with --mean_recurrence 1 --curriculum_steps 0
+        "vanilla":         (True,  True,  "random", False, False),
         "retrofit":        (False, False, "z0",     False, True),
         "cortex_retrofit": (False, False, "z0",     True,  True),
     }
