@@ -7,8 +7,9 @@ Key components
   LSTMBuffer     — LM2-style K-slot LSTM-gated memory (M_cross / M_iter)
   CortexGPT      — wraps Pythia layers, adds recurrence + optional buffer
 
-Layer split (Pythia 160M, 12 layers): n_pre=2, n_loop=8, n_coda=2
-Layer split (Pythia 1B,   24 layers): n_pre=4, n_loop=16, n_coda=4
+Layer split (Pythia 160M, 12 layers): n_pre=3, n_loop=6,  n_coda=3
+Layer split (Pythia 1B,   16 layers): n_pre=4, n_loop=8,  n_coda=4
+Layer split (Pythia 2.8B, 32 layers): n_pre=8, n_loop=16, n_coda=8
 
 Changes from v1
 ---------------
@@ -44,9 +45,9 @@ class CortexConfig:
     base_model_name: str = "EleutherAI/pythia-160m"
 
     # Layer split — must sum to total Pythia layer count
-    n_pre:  int = 2
-    n_loop: int = 8
-    n_coda: int = 2
+    n_pre:  int = 3
+    n_loop: int = 6
+    n_coda: int = 3
 
     # Hidden dim (must match base model)
     hidden_size: int = 768
@@ -93,9 +94,9 @@ class CortexConfig:
 
 
 LAYER_SPLITS: dict[str, tuple[int, int, int]] = {
-    "EleutherAI/pythia-160m": (2, 8, 2),
-    "EleutherAI/pythia-1b":   (4, 16, 4),
-    "EleutherAI/pythia-410m": (3, 12, 3),
+    "EleutherAI/pythia-160m": (3, 6,  3),
+    "EleutherAI/pythia-1b":   (4, 8,  4),
+    "EleutherAI/pythia-2.8b": (8, 16, 8),
 }
 
 # Retrofit surgery splits: (n_pre, n_loop, n_coda, loop_start_idx)

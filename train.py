@@ -54,6 +54,7 @@ import argparse
 import datetime
 import math
 import os
+import shutil
 import time
 from pathlib import Path
 from typing import Optional
@@ -467,7 +468,6 @@ def save_checkpoint(
     # Prune old checkpoints, keeping only the most recent `keep_last`
     all_ckpts = sorted(out_dir.glob("checkpoint_*"), key=lambda p: p.name)
     for old in all_ckpts[:-keep_last]:
-        import shutil
         shutil.rmtree(old)
         print(f"[step {step}] Pruned -> {old}")
 
@@ -478,7 +478,7 @@ def load_checkpoint(
     optimizer:   torch.optim.Optimizer,
     device:      torch.device,
 ) -> tuple[int, int, dict]:
-    ckpt = torch.load(os.path.join(resume_path, "checkpoint.pt"), map_location=device)
+    ckpt = torch.load(os.path.join(resume_path, "checkpoint.pt"), map_location=device, weights_only=False)
     unwrapped = model.module if isinstance(model, DDP) else model
     unwrapped.load_state_dict(ckpt["model"])
     optimizer.load_state_dict(ckpt["optimizer"])
