@@ -37,11 +37,11 @@ python train.py \
     --model_name EleutherAI/pythia-160m \
     --mean_recurrence 1 \
     --curriculum_steps 0 \
-    --max_tokens 5_000_000_000 \
+    --max_tokens 1_250_000_000 \
     --batch_size 32768 \
     --micro_batch_size 4 \
     --out_dir ${RUN_DIR} \
     --resume_path ${LATEST} \
     --wandb_project cortex-gpt \
     --log_interval 10 \
-    --save_interval 50000
+    --save_interval 10000

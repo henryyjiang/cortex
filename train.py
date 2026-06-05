@@ -1,5 +1,9 @@
 """
-CortexGPT training script — Stage 1 (healing) + Stage 2 pre-training.
+CortexGPT pre-training script.
+
+Trains from scratch by default (--training_mode cortex).  Retrofit modes
+(retrofit, cortex_retrofit) are available as diagnostics but are not the
+primary workflow.
 
 Key features
   - Muon optimizer (Newton-Schulz orthogonalisation for weight matrices)
@@ -10,7 +14,7 @@ Key features
   - µbwd = ⌈µrec/2⌉ enforced and tracked through curriculum (Parcae App. I)
   - Recurrence depth curriculum: linear ramp 1 → mean_recurrence (McLeish §4.2)
   - Skip-nonfinite-grads: bad batches log and skip, don't corrupt opt state
-  - Two-phase training: phase 1 (healing on Pile), phase 2 (mixed data)
+  - Optional two-phase training: phase 1 on Pile, phase 2 on a second dataset
   - WandB logging, periodic checkpoint save/resume
   - Single-GPU and multi-GPU (DDP) support
 
@@ -21,10 +25,11 @@ Usage (multi-GPU via torchrun):
     torchrun --nproc_per_node=4 train.py --batch_size 64 --micro_batch_size 4
 
 Key flags:
-    --model_name              EleutherAI/pythia-160m
+    --model_name              EleutherAI/pythia-160m  (sets architecture shape)
+    --training_mode           cortex  (default; parcae/vanilla/retrofit/cortex_retrofit)
     --mean_recurrence         8      (target mean T; µbwd set automatically)
     --curriculum_steps        0      (0 = no ramp, start at mean_recurrence)
-    --phase2_start_tokens     0      (0 = no phase switch; e.g. 25_000_000_000)
+    --phase2_start_tokens     0      (0 = single-phase; e.g. 25_000_000_000)
     --phase2_dataset          HuggingFaceFW/fineweb-edu
     --lr                      3e-4   (Muon param LR; AdamW fallback uses same)
     --weight_decay            0.1    (anneals to 0 over training)
@@ -364,7 +369,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--phase2_start_tokens",  type=int,   default=0,
                    help="Switch to phase2_dataset after this many tokens (0=off)")
     p.add_argument("--phase2_dataset",       default="HuggingFaceFW/fineweb-edu",
-                   help="HF dataset name for phase 2 (healing→general transition)")
+                   help="HF dataset name for phase 2")
     p.add_argument("--phase2_text_column",   default="text")
 
     # Optimiser — Muon
@@ -441,6 +446,7 @@ def save_checkpoint(
     scheduler_state: dict,
     cfg:            CortexConfig,
     total_tokens:   int,
+    keep_last:      int = 3,
 ) -> None:
     ckpt_dir = out_dir / f"checkpoint_{step:07d}"
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -457,6 +463,13 @@ def save_checkpoint(
         ckpt_dir / "checkpoint.pt",
     )
     print(f"[step {step}] Saved -> {ckpt_dir}")
+
+    # Prune old checkpoints, keeping only the most recent `keep_last`
+    all_ckpts = sorted(out_dir.glob("checkpoint_*"), key=lambda p: p.name)
+    for old in all_ckpts[:-keep_last]:
+        import shutil
+        shutil.rmtree(old)
+        print(f"[step {step}] Pruned -> {old}")
 
 
 def load_checkpoint(
@@ -592,7 +605,7 @@ def train(args: argparse.Namespace) -> None:
             text_column  = text_column,
         )
 
-    # Phase 1 loader (Pile — healing / distribution matching)
+    # Phase 1 loader (Pile)
     dataloader = _make_loader("EleutherAI/the_pile_deduplicated")
     data_iter  = iter(dataloader)
 
