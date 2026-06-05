@@ -317,7 +317,7 @@ class CortexGPT(nn.Module):
     Forward call
     ------------
     out = model(input_ids, labels=labels, num_steps=...)
-    out["loss"], out["log_ppl"], out["logits"]
+    out["loss"], out["ppl"], out["logits"]
 
     num_steps variants
     ------------------
@@ -704,14 +704,14 @@ class CortexGPT(nn.Module):
         # ── Loss ─────────────────────────────────────────────────────────────
         logits = self.embed_out(x).float()
 
-        loss = log_ppl = None
+        loss = ppl = None
         if labels is not None:
-            loss    = F.cross_entropy(
+            loss = F.cross_entropy(
                 logits.reshape(-1, logits.shape[-1]), labels.reshape(-1), ignore_index=-100
             )
-            log_ppl = loss.detach().exp()
+            ppl = loss.detach().exp()
 
-        out = {"loss": loss, "log_ppl": log_ppl, "logits": logits}
+        out = {"loss": loss, "ppl": ppl, "logits": logits}
         if return_m_cross:
             out["m_cross"] = new_m_cross
         return out
@@ -735,6 +735,13 @@ def build_cortex_gpt(
     retrofit_surgery:   bool         = False,
 ) -> tuple[CortexGPT, CortexConfig]:
     from transformers import AutoModelForCausalLM, AutoConfig
+
+    if not from_scratch and scalable_init:
+        raise ValueError(
+            "scalable_init=True with from_scratch=False will divide pretrained loop-layer "
+            "output projections by √mean_T, corrupting them from step 0. "
+            "Pass scalable_init=False when loading pretrained weights."
+        )
 
     if retrofit_surgery:
         assert not from_scratch, "retrofit_surgery requires pretrained weights (from_scratch=False)"
