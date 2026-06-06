@@ -21,9 +21,7 @@ env/
 *.ipynb
 
 # Training runs & checkpoints
-runs/
-checkpoints/
-outputs/
+
 
 # Datasets & caches
 data/

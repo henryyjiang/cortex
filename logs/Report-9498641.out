@@ -1,0 +1,22 @@
+---------------------------------------
+Begin Slurm Prolog: Jun-06-2026 10:17:27
+Job ID:    9498641
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job5b2_resume.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+No checkpoint found in runs/cortex-5b-k4. Run job5b2.sh first.
+---------------------------------------
+Begin Slurm Epilog: Jun-06-2026 10:17:30
+Job ID:        9498641
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job5b2_resume.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=00:00:16,vmem=0,walltime=00:00:02,mem=38136K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-01-006-5-0
+---------------------------------------
