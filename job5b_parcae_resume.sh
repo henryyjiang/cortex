@@ -17,7 +17,6 @@ module load cuda/12.1.1
 conda activate cortex
 
 export WANDB_DIR=$SCRATCH
-export HF_DATASETS_CACHE=$HOME/.cache/hf_datasets
 export WANDB_PROJECT=cortex-gpt
 
 RUN_DIR=runs/parcae-5b
