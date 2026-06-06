@@ -631,7 +631,7 @@ def train(args: argparse.Namespace) -> None:
                 id       = wandb_run_id,
                 resume   = "allow" if args.resume_path else None,
                 dir      = str(out_dir),
-                settings = wandb.Settings(init_timeout=120),
+                settings = wandb.Settings(init_timeout=1000),
             )
             wandb_run_id = wandb.run.id
         except Exception as e:
