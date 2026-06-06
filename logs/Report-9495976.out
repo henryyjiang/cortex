@@ -1,0 +1,42 @@
+---------------------------------------
+Begin Slurm Prolog: Jun-06-2026 08:47:03
+Job ID:    9495976
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job5b_pythia_resume.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+Resuming from: runs/pythia-5b/checkpoint_0038146
+Loading EleutherAI/pythia-160m ...
+Params: 162,914,304 total, 162,914,304 trainable
+Layer split: Pre=3, Loop=6, Coda=3
+mu_rec=1, mu_bwd=1 (= ceil(1/2))
+Effective batch: 32768 tokens = 16 seqs x 2048 tok
+Grad accum: 4 | World size: 1
+Max steps: 38,146 | Warmup: 381 | Cooldown: 3814
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/train.py", line 840, in <module>
+    train(args)
+  File "/storage/home/hcoda1/3/hjiang420/cortex/train.py", line 587, in train
+    start_step, total_tokens, _ = load_checkpoint(
+                                  ^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/train.py", line 483, in load_checkpoint
+    unwrapped.load_state_dict(ckpt["model"])
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/nn/modules/module.py", line 2584, in load_state_dict
+    raise RuntimeError(
+RuntimeError: Error(s) in loading state_dict for CortexGPT:
+	Missing key(s) in state_dict: "pre_layers.2.input_layernorm.weight", "pre_layers.2.input_layernorm.bias", "pre_layers.2.post_attention_layernorm.weight", "pre_layers.2.post_attention_layernorm.bias", "pre_layers.2.attention.query_key_value.weight", "pre_layers.2.attention.query_key_value.bias", "pre_layers.2.attention.dense.weight", "pre_layers.2.attention.dense.bias", "pre_layers.2.mlp.dense_h_to_4h.weight", "pre_layers.2.mlp.dense_h_to_4h.bias", "pre_layers.2.mlp.dense_4h_to_h.weight", "pre_layers.2.mlp.dense_4h_to_h.bias", "coda_layers.2.input_layernorm.weight", "coda_layers.2.input_layernorm.bias", "coda_layers.2.post_attention_layernorm.weight", "coda_layers.2.post_attention_layernorm.bias", "coda_layers.2.attention.query_key_value.weight", "coda_layers.2.attention.query_key_value.bias", "coda_layers.2.attention.dense.weight", "coda_layers.2.attention.dense.bias", "coda_layers.2.mlp.dense_h_to_4h.weight", "coda_layers.2.mlp.dense_h_to_4h.bias", "coda_layers.2.mlp.dense_4h_to_h.weight", "coda_layers.2.mlp.dense_4h_to_h.bias". 
+	Unexpected key(s) in state_dict: "loop_layers.6.input_layernorm.weight", "loop_layers.6.input_layernorm.bias", "loop_layers.6.post_attention_layernorm.weight", "loop_layers.6.post_attention_layernorm.bias", "loop_layers.6.attention.query_key_value.weight", "loop_layers.6.attention.query_key_value.bias", "loop_layers.6.attention.dense.weight", "loop_layers.6.attention.dense.bias", "loop_layers.6.mlp.dense_h_to_4h.weight", "loop_layers.6.mlp.dense_h_to_4h.bias", "loop_layers.6.mlp.dense_4h_to_h.weight", "loop_layers.6.mlp.dense_4h_to_h.bias", "loop_layers.7.input_layernorm.weight", "loop_layers.7.input_layernorm.bias", "loop_layers.7.post_attention_layernorm.weight", "loop_layers.7.post_attention_layernorm.bias", "loop_layers.7.attention.query_key_value.weight", "loop_layers.7.attention.query_key_value.bias", "loop_layers.7.attention.dense.weight", "loop_layers.7.attention.dense.bias", "loop_layers.7.mlp.dense_h_to_4h.weight", "loop_layers.7.mlp.dense_h_to_4h.bias", "loop_layers.7.mlp.dense_4h_to_h.weight", "loop_layers.7.mlp.dense_4h_to_h.bias". 
+---------------------------------------
+Begin Slurm Epilog: Jun-06-2026 08:47:35
+Job ID:        9495976
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job5b_pythia_resume.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=00:04:16,vmem=0,walltime=00:00:32,mem=1629388K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-02-018-33-0
+---------------------------------------
