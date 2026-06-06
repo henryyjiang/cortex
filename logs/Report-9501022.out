@@ -1,0 +1,62 @@
+---------------------------------------
+Begin Slurm Prolog: Jun-06-2026 11:17:36
+Job ID:    9501022
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job5b_parcae_resume.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+
+CondaError: Run 'conda init' before 'conda deactivate'
+
+Resuming from: runs/parcae-5b/checkpoint_0040000
+Tokens so far: 1310728192 | Training until: 2560728192
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading EleutherAI/pythia-160m ...
+Params: 162,915,840 total, 162,915,840 trainable
+Layer split: Pre=3, Loop=6, Coda=3
+mu_rec=8, mu_bwd=4 (= ceil(8/2))
+Effective batch: 32768 tokens = 16 seqs x 2048 tok
+Grad accum: 4 | World size: 1
+Max steps: 78,147 | Warmup: 781 | Cooldown: 7814
+Curriculum: mu_rec ramps 1->8 over 3800 steps
+Resumed from step 40000, 1,310,728,192 tokens
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /storage/home/hcoda1/3/hjiang420/.netrc.
+wandb: Currently logged in as: henryyjiang42 (henryyjiang42-georgia-institute-of-technology) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run niohhdqn
+wandb: ERROR Run initialization has timed out after 90.0 sec. Please try increasing the timeout with the `init_timeout` setting: `wandb.init(settings=wandb.Settings(init_timeout=120))`.
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/train.py", line 847, in <module>
+    train(args)
+  File "/storage/home/hcoda1/3/hjiang420/cortex/train.py", line 626, in train
+    wandb.init(
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/wandb/sdk/wandb_init.py", line 1613, in init
+    get_sentry().reraise(e)
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/wandb/analytics/sentry.py", line 191, in reraise
+    raise exc.with_traceback(tb)
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/wandb/sdk/wandb_init.py", line 1596, in init
+    run = wi.init(run_settings, run_config, run_printer)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/wandb/sdk/wandb_init.py", line 1037, in init
+    raise CommError(
+wandb.errors.errors.CommError: Run initialization has timed out after 90.0 sec. Please try increasing the timeout with the `init_timeout` setting: `wandb.init(settings=wandb.Settings(init_timeout=120))`.
+[2026-06-06T11:32:20.715] error: *** JOB 9501022 ON atl1-1-02-018-31-0 CANCELLED AT 2026-06-06T11:32:20 DUE to SIGNAL Terminated ***
+---------------------------------------
+Begin Slurm Epilog: Jun-06-2026 11:32:23
+Job ID:        9501022
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job5b_parcae_resume.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=01:57:52,vmem=0,walltime=00:14:44,mem=5243060K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-02-018-31-0
+---------------------------------------
