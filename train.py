@@ -623,29 +623,14 @@ def train(args: argparse.Namespace) -> None:
     # ── WandB ───────────────────────────────────────────────────────────────
     if main and not args.wandb_disabled:
         import wandb
-        try:
-            wandb.init(
-                project  = args.wandb_project,
-                name     = out_dir.name,
-                config   = vars(args),
-                id       = wandb_run_id,
-                resume   = "allow" if args.resume_path else None,
-                dir      = str(out_dir),
-                settings = wandb.Settings(init_timeout=1000),
-            )
-            wandb_run_id = wandb.run.id
-        except Exception as e:
-            print(f"WandB init failed ({e}), falling back to offline mode.")
-            wandb.init(
-                project  = args.wandb_project,
-                name     = out_dir.name,
-                config   = vars(args),
-                id       = wandb_run_id,
-                resume   = "allow" if args.resume_path else None,
-                dir      = str(out_dir),
-                mode     = "offline",
-            )
-            wandb_run_id = wandb.run.id
+        wandb.init(
+            project  = args.wandb_project,
+            name     = out_dir.name,
+            config   = vars(args),
+            dir      = str(out_dir),
+            settings = wandb.Settings(init_timeout=120),
+        )
+        wandb_run_id = wandb.run.id
 
     # ── Training state ───────────────────────────────────────────────────────
     model.train()
