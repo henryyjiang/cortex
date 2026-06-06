@@ -207,4 +207,16 @@ step= 39840 | loss=4.7687 | lr=3.00e-04 | wd=0.0478 | mom=0.9500 | T=5.2 k=3.2 (
 step= 39850 | loss=4.7100 | lr=3.00e-04 | wd=0.0478 | mom=0.9500 | T=4.0 k=3.2 (mu_rec=8 mu_bwd=4) | grad=2.656 | tok/s=7,462 | tokens=1.31B
 step= 39860 | loss=4.7340 | lr=3.00e-04 | wd=0.0478 | mom=0.9500 | T=10.8 k=4.0 (mu_rec=8 mu_bwd=4) | grad=2.656 | tok/s=23,586 | tokens=1.31B
 step= 39870 | loss=4.8149 | lr=3.00e-04 | wd=0.0477 | mom=0.9500 | T=5.8 k=4.0 (mu_rec=8 mu_bwd=4) | grad=3.203 | tok/s=24,991 | tokens=1.31B
-step= 39880 | loss=4.7212 | lr=3.00e-04 | wd=0.0477 | mom=0.9500 | T=5.8 k=3.2 (mu_rec=8 mu_bwd=4) | grad=4.750 | tok/s=22,213 | tokens=1.31B
+step= 39880 | loss=4.7212 | lr=3.00e-04 | wd=0.0477 | mom=0.9500 | T=5.8 k=3.2 (mu_rec=8 mu_bwd=4) | grad=4.750 | tok/s=22,213 | tokens=1.31B[2026-06-06T10:54:38.550] error: *** JOB 9496912 ON atl1-1-02-018-29-0 CANCELLED AT 2026-06-06T10:54:38 DUE to SIGNAL Terminated ***
+---------------------------------------
+Begin Slurm Epilog: Jun-06-2026 10:54:41
+Job ID:        9496912
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job5b_resume.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=12:49:44,vmem=0,walltime=01:36:13,mem=6926140K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-02-018-29-0
+---------------------------------------
