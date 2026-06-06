@@ -448,6 +448,7 @@ def save_checkpoint(
     cfg:            CortexConfig,
     total_tokens:   int,
     keep_last:      int = 3,
+    wandb_run_id:   Optional[str] = None,
 ) -> None:
     ckpt_dir = out_dir / f"checkpoint_{step:07d}"
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -460,6 +461,7 @@ def save_checkpoint(
             "scheduler":    scheduler_state,
             "total_tokens": total_tokens,
             "config":       vars(cfg),
+            "wandb_run_id": wandb_run_id,
         },
         ckpt_dir / "checkpoint.pt",
     )
@@ -477,13 +479,13 @@ def load_checkpoint(
     model:       nn.Module,
     optimizer:   torch.optim.Optimizer,
     device:      torch.device,
-) -> tuple[int, int, dict]:
+) -> tuple[int, int, dict, Optional[str]]:
     ckpt = torch.load(os.path.join(resume_path, "checkpoint.pt"), map_location=device, weights_only=False)
     unwrapped = model.module if isinstance(model, DDP) else model
     unwrapped.load_state_dict(ckpt["model"])
     optimizer.load_state_dict(ckpt["optimizer"])
     print(f"Resumed from step {ckpt['step']}, {ckpt['total_tokens']:,} tokens")
-    return ckpt["step"], ckpt["total_tokens"], ckpt.get("scheduler", {})
+    return ckpt["step"], ckpt["total_tokens"], ckpt.get("scheduler", {}), ckpt.get("wandb_run_id")
 
 
 # ---------------------------------------------------------------------------
@@ -583,8 +585,9 @@ def train(args: argparse.Namespace) -> None:
     # ── Resume ──────────────────────────────────────────────────────────────
     start_step   = 0
     total_tokens = 0
+    wandb_run_id: Optional[str] = None
     if args.resume_path:
-        start_step, total_tokens, _ = load_checkpoint(
+        start_step, total_tokens, _, wandb_run_id = load_checkpoint(
             args.resume_path, model, optimizer, device
         )
 
@@ -624,9 +627,11 @@ def train(args: argparse.Namespace) -> None:
             project = args.wandb_project,
             name    = out_dir.name,
             config  = vars(args),
+            id      = wandb_run_id,
             resume  = "allow" if args.resume_path else None,
             dir     = str(out_dir),
         )
+        wandb_run_id = wandb.run.id
 
     # ── Training state ───────────────────────────────────────────────────────
     model.train()
@@ -809,7 +814,8 @@ def train(args: argparse.Namespace) -> None:
             if step % args.save_interval == 0 and main:
                 raw_model = model.module if isinstance(model, DDP) else model
                 save_checkpoint(out_dir, step, raw_model, optimizer,
-                                {"step": step}, cfg, total_tokens)
+                                {"step": step}, cfg, total_tokens,
+                                wandb_run_id=wandb_run_id)
 
             # ── Budget check ──────────────────────────────────────────────────
             if step >= max_steps:
@@ -822,7 +828,8 @@ def train(args: argparse.Namespace) -> None:
     if main:
         raw_model = model.module if isinstance(model, DDP) else model
         save_checkpoint(out_dir, step, raw_model, optimizer,
-                        {"step": step}, cfg, total_tokens)
+                        {"step": step}, cfg, total_tokens,
+                        wandb_run_id=wandb_run_id)
         print(f"Training complete. {total_tokens/1e9:.2f}B tokens, {step} steps.")
         if not args.wandb_disabled:
             import wandb

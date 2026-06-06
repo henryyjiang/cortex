@@ -1,21 +1,15 @@
 """
 Data loading for CortexGPT pre-training.
 
-Stage 1 (healing): EleutherAI/the_pile_deduplicated  — matches Pythia pretraining
-Stage 2 (mixed):   Configurable dataset (HuggingFaceFW/fineweb-edu or custom mix)
+Default corpus: EleutherAI/the_pile_deduplicated (matches Pythia pretraining data).
+Alternate corpus: pass dataset_name="HuggingFaceFW/fineweb-edu" (or any HF text
+dataset) to build_dataloader for a higher-quality late-training phase.
 
 Uses HuggingFace streaming to avoid downloading full corpora.
 Sequences are packed to `seq_len` tokens with EOS separators.
 
-Buffer reset signal: returned `eos_mask` tensor is 1 at the last token of each
+Buffer reset signal: returned `eos_mask` tensor is True at the last token of each
 document — train.py uses this to reset M_cross at EOS boundaries.
-
-Changes from v1
----------------
-  [data] TextStreamDataset replaces PileStreamDataset — accepts any HF text
-         dataset via dataset_name + text_column params. Default behaviour is
-         identical to v1 (Pile).
-  [data] build_dataloader exposes dataset_name / text_column for phase2 switching.
 """
 from __future__ import annotations
 

@@ -32,11 +32,15 @@ if [ -z "$LATEST" ]; then
 fi
 echo "Resuming from: $LATEST"
 
+PREV_TOKENS=$(python -c "import torch; ckpt=torch.load('${LATEST}/checkpoint.pt', weights_only=False); print(ckpt['total_tokens'])")
+NEW_MAX_TOKENS=$((PREV_TOKENS + 1250000000))
+echo "Tokens so far: $PREV_TOKENS | Training until: $NEW_MAX_TOKENS"
+
 python train.py \
     --training_mode parcae \
     --model_name EleutherAI/pythia-160m \
     --mean_recurrence 8 \
-    --max_tokens 1_250_000_000 \
+    --max_tokens ${NEW_MAX_TOKENS} \
     --batch_size 32768 \
     --micro_batch_size 4 \
     --curriculum_steps 3800 \
