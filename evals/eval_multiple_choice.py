@@ -127,7 +127,7 @@ def load_arc(config: str, max_examples: int):
 
 def load_piqa(max_examples: int):
     from datasets import load_dataset
-    ds = load_dataset("ybisk/piqa", split="validation", trust_remote_code=True)
+    ds = load_dataset("piqa", split="validation")
     if max_examples > 0:
         ds = ds.select(range(min(max_examples, len(ds))))
     return [(ex["goal"], [ex["sol1"], ex["sol2"]], int(ex["label"])) for ex in ds]
