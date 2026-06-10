@@ -1,0 +1,146 @@
+#!/bin/bash
+#SBATCH --account=gts-aivanova7-lab
+#SBATCH -N 1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem=64GB
+#SBATCH --gres=gpu:A100:1
+#SBATCH -t 12:00:00
+#SBATCH -q inferno
+#SBATCH -o logs/Report-%j.out
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=henryyjiang42@gmail.com
+
+cd $SLURM_SUBMIT_DIR
+
+module load anaconda3
+module load cuda/12.1.1
+conda activate cortex
+
+export RESULTS_DIR="eval_results/longcontext_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$RESULTS_DIR"
+
+# ── Checkpoint paths ──────────────────────────────────────────────────────────
+CORTEX_CKPT="runs/cortex-5b/checkpoint_0154441/checkpoint.pt"
+CORTEX_K4_CKPT="runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt"
+PYTHIA_CKPT="runs/pythia-5b/checkpoint_0152584/checkpoint.pt"
+PARCAE_CKPT="runs/parcae-5b/checkpoint_0154441/checkpoint.pt"
+
+declare -A CKPTS=(
+    ["cortex-5b"]="$CORTEX_CKPT"
+    ["cortex-5b-k4"]="$CORTEX_K4_CKPT"
+    ["pythia-5b"]="$PYTHIA_CKPT"
+    ["parcae-5b"]="$PARCAE_CKPT"
+)
+declare -A MEM_SLOTS=(
+    ["cortex-5b"]=0
+    ["cortex-5b-k4"]=4
+    ["pythia-5b"]=0
+    ["parcae-5b"]=0
+)
+declare -A T_FLAG=(
+    ["cortex-5b"]=""
+    ["cortex-5b-k4"]=""
+    ["pythia-5b"]="--T 1"
+    ["parcae-5b"]=""
+)
+
+MODELS=("cortex-5b" "cortex-5b-k4" "pythia-5b" "parcae-5b")
+
+# ── BABILong ──────────────────────────────────────────────────────────────────
+echo "============================================================"
+echo "BABILong"
+echo "============================================================"
+for MODEL in "${MODELS[@]}"; do
+    echo "[$MODEL]"
+    python evals/eval_babilong.py \
+        --checkpoint "${CKPTS[$MODEL]}" \
+        --memory_slots "${MEM_SLOTS[$MODEL]}" \
+        ${T_FLAG[$MODEL]} \
+        --tasks qa1 qa2 qa3 \
+        --out_dir "$RESULTS_DIR/babilong/$MODEL"
+done
+
+# ── LongMemEval ───────────────────────────────────────────────────────────────
+echo "============================================================"
+echo "LongMemEval"
+echo "============================================================"
+for MODEL in "${MODELS[@]}"; do
+    echo "[$MODEL]"
+    python evals/eval_longmemeval.py \
+        --checkpoint "${CKPTS[$MODEL]}" \
+        --memory_slots "${MEM_SLOTS[$MODEL]}" \
+        ${T_FLAG[$MODEL]} \
+        --out_dir "$RESULTS_DIR/longmemeval/$MODEL"
+done
+
+# ── Aggregate into tables ──────────────────────────────────────────────────────
+echo "============================================================"
+echo "Results"
+echo "============================================================"
+
+python - <<'PYEOF'
+import json, os, sys
+from pathlib import Path
+
+results_dir = Path(os.environ["RESULTS_DIR"])
+MODELS = ["cortex-5b", "cortex-5b-k4", "pythia-5b", "parcae-5b"]
+
+def load_json(path):
+    if not path.exists():
+        print(f"  WARNING: missing {path}", file=sys.stderr)
+        return None
+    with open(path) as f:
+        return json.load(f)
+
+def print_table(title, rows, col_headers):
+    col_w   = max(len(h) for h in col_headers) + 2
+    label_w = max(len(r[0]) for r in rows) + 2
+    header  = f"{'Model':<{label_w}}" + "".join(f"{h:>{col_w}}" for h in col_headers)
+    sep     = "-" * len(header)
+    print(f"\n{title}")
+    print(sep)
+    print(header)
+    print(sep)
+    for row in rows:
+        print(f"{row[0]:<{label_w}}" + "".join(f"{v:>{col_w}}" for v in row[1:]))
+    print(sep)
+
+# ── BABILong ──────────────────────────────────────────────────────────────────
+for task in ["qa1", "qa2", "qa3"]:
+    buckets = None
+    rows = []
+    for m in MODELS:
+        d = load_json(results_dir / "babilong" / m / "results.json")
+        if d is None:
+            rows.append([m])
+            continue
+        label_key = next(iter(d))
+        task_data = d[label_key].get(task, {})
+        if buckets is None:
+            buckets = [b for b, r in task_data.items() if r["total"] > 0]
+        row = [m] + [f"{task_data.get(b, {}).get('accuracy', 0):.3f}" for b in (buckets or [])]
+        rows.append(row)
+    if buckets:
+        print_table(f"BABILong {task.upper()} — accuracy by context length", rows, buckets)
+
+# ── LongMemEval ───────────────────────────────────────────────────────────────
+buckets = None
+rows = []
+for m in MODELS:
+    d = load_json(results_dir / "longmemeval" / m / "results.json")
+    if d is None:
+        rows.append([m])
+        continue
+    label_key = next(iter(d))
+    result = d[label_key]
+    if buckets is None:
+        buckets = [b for b, r in result.items() if r["total"] > 0]
+    row = [m] + [f"{result.get(b, {}).get('accuracy', 0):.3f}" for b in (buckets or [])]
+    rows.append(row)
+if buckets:
+    print_table("LongMemEval — accuracy by turn depth", rows, buckets)
+
+print("\nDone.")
+PYEOF
+
+echo "Results written to $RESULTS_DIR"
