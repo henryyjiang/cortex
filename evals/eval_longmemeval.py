@@ -39,6 +39,9 @@ def parse_args() -> argparse.Namespace:
                    help="Max examples per turn-depth bucket (0 = all)")
     p.add_argument("--depth_buckets", nargs="+", type=int, default=[5, 10, 20, 50])
     p.add_argument("--out_dir",      default="eval_results/longmemeval")
+    p.add_argument("--dataset_path", default=None,
+                   help="Local path to pre-downloaded LongMemEval (load_from_disk). "
+                        "Required on nodes without internet access.")
     p.add_argument("--dtype",        default="bfloat16", choices=["float32", "bfloat16"])
     return p.parse_args()
 
@@ -92,13 +95,16 @@ def eval_one(model, tokenizer, turns, question, answer, T, seq_len) -> bool:
 # Dataset evaluation loop
 # ---------------------------------------------------------------------------
 
-def run_eval(model, tokenizer, T, seq_len, max_examples, depth_buckets):
-    from datasets import load_dataset
+def run_eval(model, tokenizer, T, seq_len, max_examples, depth_buckets, dataset_path=None):
+    from datasets import load_dataset, load_from_disk
 
     bucket_labels = [f"≤{d}turns" for d in depth_buckets] + [f">{depth_buckets[-1]}turns"]
     results = {lbl: {"correct": 0, "total": 0} for lbl in bucket_labels}
 
-    ds   = load_dataset("xiaowu0162/LongMemEval", split="test", streaming=True)
+    if dataset_path is not None:
+        ds = load_from_disk(dataset_path)["test"]
+    else:
+        ds = load_dataset("xiaowu0162/LongMemEval", split="test", streaming=True)
     seen = 0
     for ex in ds:
         turns    = ex.get("history", ex.get("messages", []))
@@ -155,7 +161,8 @@ def main() -> None:
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets)
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+                       dataset_path=args.dataset_path)
     label   = Path(args.checkpoint).parent.parent.name
 
     print(f"\n  {'Bucket':<16} {'Correct':>8} {'Total':>8} {'Acc':>8}")

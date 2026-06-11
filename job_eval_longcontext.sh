@@ -19,6 +19,10 @@ conda activate cortex
 export RESULTS_DIR="eval_results/longcontext_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$RESULTS_DIR"
 
+# Pre-downloaded dataset (no internet on compute nodes).
+# Run once on a login node: python evals/download_datasets.py
+LONGMEMEVAL_PATH="data/LongMemEval"
+
 # ── Checkpoint paths ──────────────────────────────────────────────────────────
 CORTEX_CKPT="runs/cortex-5b/checkpoint_0154441/checkpoint.pt"
 CORTEX_K4_CKPT="runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt"
@@ -70,6 +74,7 @@ for MODEL in "${MODELS[@]}"; do
         --checkpoint "${CKPTS[$MODEL]}" \
         --memory_slots "${MEM_SLOTS[$MODEL]}" \
         ${T_FLAG[$MODEL]} \
+        --dataset_path "$LONGMEMEVAL_PATH" \
         --out_dir "$RESULTS_DIR/longmemeval/$MODEL"
 done
 
