@@ -98,8 +98,7 @@ def run_eval(model, tokenizer, T, seq_len, max_examples, depth_buckets):
     bucket_labels = [f"≤{d}turns" for d in depth_buckets] + [f">{depth_buckets[-1]}turns"]
     results = {lbl: {"correct": 0, "total": 0} for lbl in bucket_labels}
 
-    ds   = load_dataset("xiaowu0162/LongMemEval", split="test", streaming=True,
-                        trust_remote_code=True)
+    ds   = load_dataset("xiaowu0162/LongMemEval", split="test", streaming=True)
     seen = 0
     for ex in ds:
         turns    = ex.get("history", ex.get("messages", []))

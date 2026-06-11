@@ -26,13 +26,17 @@ def load_checkpoint(
     the checkpoint, so callers can use it as the default eval T.
     """
     ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
-    model, cfg = build_cortex_gpt(
-        model_name   = model_name,
-        memory_slots = memory_slots,
-        torch_dtype  = dtype,
-        device_map   = "cpu",
-    )
     saved_cfg = ckpt.get("config", {})
+    model, cfg = build_cortex_gpt(
+        model_name         = model_name,
+        memory_slots       = memory_slots,
+        memory_slots_iter  = saved_cfg.get("memory_slots_iter", 0),
+        torch_dtype        = dtype,
+        device_map         = "cpu",
+        scalable_init      = saved_cfg.get("scalable_init", True),
+        h0_init            = saved_cfg.get("h0_init", "random"),
+        prelude_norm       = saved_cfg.get("prelude_norm", True),
+    )
     if "mean_recurrence" in saved_cfg:
         cfg.mean_recurrence = saved_cfg["mean_recurrence"]
     model.load_state_dict(ckpt["model"], strict=True)
