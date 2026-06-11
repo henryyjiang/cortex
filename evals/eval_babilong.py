@@ -94,39 +94,37 @@ def eval_one(model, tokenizer, context, question, answer, T, seq_len) -> bool:
 def run_task(task_name, model, tokenizer, T, seq_len, max_examples, length_buckets):
     from datasets import load_dataset
 
-    bucket_labels = [f"≤{b//1000}K" for b in length_buckets] + [f">{length_buckets[-1]//1000}K"]
-    results = {lbl: {"correct": 0, "total": 0} for lbl in bucket_labels}
+    # BABILong uses config name for context length (e.g. '1k', '4k') and
+    # split for the task (e.g. 'qa1'). Load each bucket config separately.
+    config_names = [f"{b // 1000}k" for b in length_buckets]
+    results = {cfg: {"correct": 0, "total": 0} for cfg in config_names}
 
-    ds   = load_dataset("RMT-team/BABILong", split=task_name, streaming=True,
-                        trust_remote_code=True)
-    seen = 0
-    for ex in ds:
-        ctx      = ex.get("context", ex.get("text", ""))
-        question = ex.get("question", "")
-        answer   = ex.get("answer", "")
-        if not ctx or not question or not answer:
+    for cfg in config_names:
+        try:
+            ds = load_dataset("RMT-team/BABILong", cfg, split=task_name,
+                              streaming=True, trust_remote_code=True)
+        except Exception as e:
+            print(f"  [{task_name}/{cfg}] skipping — {e}")
             continue
 
-        ctx_len = len(ctx)
-        bucket  = bucket_labels[-1]
-        for i, thresh in enumerate(length_buckets):
-            if ctx_len <= thresh:
-                bucket = bucket_labels[i]
+        seen = 0
+        for ex in ds:
+            ctx      = ex.get("context", ex.get("text", ""))
+            question = ex.get("question", "")
+            answer   = ex.get("answer", "")
+            if not ctx or not question or not answer:
+                continue
+
+            if eval_one(model, tokenizer, ctx, question, answer, T, seq_len):
+                results[cfg]["correct"] += 1
+            results[cfg]["total"] += 1
+            seen += 1
+
+            if seen % 50 == 0:
+                print(f"  [{task_name}/{cfg}] {seen} examples processed...")
+
+            if max_examples > 0 and seen >= max_examples:
                 break
-
-        if max_examples > 0 and results[bucket]["total"] >= max_examples:
-            continue
-
-        if eval_one(model, tokenizer, ctx, question, answer, T, seq_len):
-            results[bucket]["correct"] += 1
-        results[bucket]["total"] += 1
-        seen += 1
-
-        if seen % 50 == 0:
-            print(f"  [{task_name}] {seen} examples processed...")
-
-        if max_examples > 0 and all(r["total"] >= max_examples for r in results.values()):
-            break
 
     for r in results.values():
         r["accuracy"] = r["correct"] / r["total"] if r["total"] > 0 else 0.0
