@@ -109,10 +109,8 @@ def run_task(task_name, model, tokenizer, T, seq_len, max_examples, length_bucke
                 # snapshot_download layout: data/<task>/<cfg>.json
                 import glob as _glob
                 from pathlib import Path as _Path
-                candidates = (
-                    _glob.glob(str(_Path(dataset_path) / "**" / task_name / f"{cfg}.json"), recursive=True)
-                    + _glob.glob(str(_Path(dataset_path) / "**" / f"{task_name}_{cfg}.json"), recursive=True)
-                    + _glob.glob(str(_Path(dataset_path) / "**" / f"{cfg}" / f"{task_name}.json"), recursive=True)
+                candidates = _glob.glob(
+                    str(_Path(dataset_path) / "data" / task_name / f"{cfg}.json")
                 )
                 if not candidates:
                     print(f"  [{task_name}/{cfg}] skipping — no local file found in {dataset_path}")

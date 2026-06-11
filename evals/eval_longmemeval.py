@@ -88,7 +88,7 @@ def eval_one(model, tokenizer, turns, question, answer, T, seq_len) -> bool:
     out   = model(input_ids=chunk, num_steps=num_steps,
                   m_cross_in=m_cross, return_m_cross=False)
     pred  = tokenizer.decode([out["logits"][0, -1].argmax(dim=-1).item()]).strip().lower()
-    return pred == answer.strip().lower()
+    return pred == str(answer).strip().lower()
 
 
 # ---------------------------------------------------------------------------
