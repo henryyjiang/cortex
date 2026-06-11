@@ -1,0 +1,382 @@
+---------------------------------------
+Begin Slurm Prolog: Jun-11-2026 10:36:07
+Job ID:    9826667
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job_eval_longcontext.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+
+CondaError: Run 'conda init' before 'conda deactivate'
+
+============================================================
+BABILong
+============================================================
+[cortex-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+Loading checkpoint: runs/cortex-5b/checkpoint_0154441/checkpoint.pt
+T=8  tasks=['qa1', 'qa2', 'qa3']
+
+--- qa1 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+--- qa2 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+--- qa3 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+Results saved → eval_results/longcontext_20260611_103610/babilong/cortex-5b
+[cortex-5b-k4]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+'_ssl.c:999: The handshake operation timed out' thrown while requesting GET https://huggingface.co/datasets/RMT-team/BABILong/resolve/ee0d588794c7ac098062ee0d247c733d62e94fe2/data/qa1/32k.json
+Retrying in 1s [Retry 1/5].
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+Loading checkpoint: runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt
+T=8  tasks=['qa1', 'qa2', 'qa3']
+
+--- qa1 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+--- qa2 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+--- qa3 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+Results saved → eval_results/longcontext_20260611_103610/babilong/cortex-5b-k4
+[pythia-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+Loading checkpoint: runs/pythia-5b/checkpoint_0152584/checkpoint.pt
+T=1  tasks=['qa1', 'qa2', 'qa3']
+
+--- qa1 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+--- qa2 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+--- qa3 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+Results saved → eval_results/longcontext_20260611_103610/babilong/pythia-5b
+[parcae-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'RMT-team/BABILong' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+Loading checkpoint: runs/parcae-5b/checkpoint_0154441/checkpoint.pt
+T=8  tasks=['qa1', 'qa2', 'qa3']
+
+--- qa1 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+--- qa2 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+--- qa3 ---
+  Bucket        Correct    Total      Acc
+  ----------------------------------------
+
+Results saved → eval_results/longcontext_20260611_103610/babilong/parcae-5b
+============================================================
+LongMemEval
+============================================================
+[cortex-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b/checkpoint_0154441/checkpoint.pt
+T=8
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 199, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 177, in main
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 118, in run_eval
+    raise FileNotFoundError(f"No json/jsonl/parquet files found in {dataset_path}")
+FileNotFoundError: No json/jsonl/parquet files found in data/LongMemEval
+[cortex-5b-k4]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt
+T=8
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 199, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 177, in main
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 118, in run_eval
+    raise FileNotFoundError(f"No json/jsonl/parquet files found in {dataset_path}")
+FileNotFoundError: No json/jsonl/parquet files found in data/LongMemEval
+[pythia-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/pythia-5b/checkpoint_0152584/checkpoint.pt
+T=1
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 199, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 177, in main
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 118, in run_eval
+    raise FileNotFoundError(f"No json/jsonl/parquet files found in {dataset_path}")
+FileNotFoundError: No json/jsonl/parquet files found in data/LongMemEval
+[parcae-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/parcae-5b/checkpoint_0154441/checkpoint.pt
+T=8
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 199, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 177, in main
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 118, in run_eval
+    raise FileNotFoundError(f"No json/jsonl/parquet files found in {dataset_path}")
+FileNotFoundError: No json/jsonl/parquet files found in data/LongMemEval
+============================================================
+Results
+============================================================
+  WARNING: missing eval_results/longcontext_20260611_103610/longmemeval/cortex-5b/results.json
+  WARNING: missing eval_results/longcontext_20260611_103610/longmemeval/cortex-5b-k4/results.json
+  WARNING: missing eval_results/longcontext_20260611_103610/longmemeval/pythia-5b/results.json
+  WARNING: missing eval_results/longcontext_20260611_103610/longmemeval/parcae-5b/results.json
+
+Done.
+Results written to eval_results/longcontext_20260611_103610
+---------------------------------------
+Begin Slurm Epilog: Jun-11-2026 10:41:02
+Job ID:        9826667
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job_eval_longcontext.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=00:39:28,vmem=0,walltime=00:04:56,mem=3824048K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-02-018-35-0
+---------------------------------------

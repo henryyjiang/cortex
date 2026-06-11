@@ -1,0 +1,6 @@
+model,bucket,correct,total,accuracy
+cortex-5b-k4,≤5turns,0,0,0.0000
+cortex-5b-k4,≤10turns,0,0,0.0000
+cortex-5b-k4,≤20turns,0,0,0.0000
+cortex-5b-k4,≤50turns,0,0,0.0000
+cortex-5b-k4,>50turns,0,0,0.0000

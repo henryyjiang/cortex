@@ -1,0 +1,65 @@
+---------------------------------------
+Begin Slurm Prolog: Jun-10-2026 13:25:10
+Job ID:    9795257
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job_eval.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+============================================================
+BABILong evaluation
+============================================================
+[1/4] cortex-5b
+python: can't open file '/storage/home/hcoda1/3/hjiang420/cortex/eval_babilong.py': [Errno 2] No such file or directory
+[2/4] cortex-5b-k4
+python: can't open file '/storage/home/hcoda1/3/hjiang420/cortex/eval_babilong.py': [Errno 2] No such file or directory
+[3/4] pythia-5b
+python: can't open file '/storage/home/hcoda1/3/hjiang420/cortex/eval_babilong.py': [Errno 2] No such file or directory
+[4/4] parcae-5b
+python: can't open file '/storage/home/hcoda1/3/hjiang420/cortex/eval_babilong.py': [Errno 2] No such file or directory
+============================================================
+LongMemEval evaluation
+============================================================
+[1/4] cortex-5b
+python: can't open file '/storage/home/hcoda1/3/hjiang420/cortex/eval_longmemeval.py': [Errno 2] No such file or directory
+[2/4] cortex-5b-k4
+python: can't open file '/storage/home/hcoda1/3/hjiang420/cortex/eval_longmemeval.py': [Errno 2] No such file or directory
+[3/4] pythia-5b
+python: can't open file '/storage/home/hcoda1/3/hjiang420/cortex/eval_longmemeval.py': [Errno 2] No such file or directory
+[4/4] parcae-5b
+python: can't open file '/storage/home/hcoda1/3/hjiang420/cortex/eval_longmemeval.py': [Errno 2] No such file or directory
+============================================================
+Aggregating results
+============================================================
+  WARNING: missing eval_results/babilong/cortex-5b/results.json
+  WARNING: missing eval_results/babilong/cortex-5b-k4/results.json
+  WARNING: missing eval_results/babilong/pythia-5b/results.json
+  WARNING: missing eval_results/babilong/parcae-5b/results.json
+  WARNING: missing eval_results/babilong/cortex-5b/results.json
+  WARNING: missing eval_results/babilong/cortex-5b-k4/results.json
+  WARNING: missing eval_results/babilong/pythia-5b/results.json
+  WARNING: missing eval_results/babilong/parcae-5b/results.json
+  WARNING: missing eval_results/babilong/cortex-5b/results.json
+  WARNING: missing eval_results/babilong/cortex-5b-k4/results.json
+  WARNING: missing eval_results/babilong/pythia-5b/results.json
+  WARNING: missing eval_results/babilong/parcae-5b/results.json
+  WARNING: missing eval_results/longmemeval/cortex-5b/results.json
+  WARNING: missing eval_results/longmemeval/cortex-5b-k4/results.json
+  WARNING: missing eval_results/longmemeval/pythia-5b/results.json
+  WARNING: missing eval_results/longmemeval/parcae-5b/results.json
+
+Done.
+Results written to eval_results/run_20260610_132513
+---------------------------------------
+Begin Slurm Epilog: Jun-10-2026 13:25:15
+Job ID:        9795257
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job_eval.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=00:01:12,vmem=0,walltime=00:00:09,mem=58120K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-01-006-5-0
+---------------------------------------
