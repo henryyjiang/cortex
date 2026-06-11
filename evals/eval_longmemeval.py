@@ -96,13 +96,26 @@ def eval_one(model, tokenizer, turns, question, answer, T, seq_len) -> bool:
 # ---------------------------------------------------------------------------
 
 def run_eval(model, tokenizer, T, seq_len, max_examples, depth_buckets, dataset_path=None):
-    from datasets import load_dataset, load_from_disk
+    from datasets import load_dataset
 
     bucket_labels = [f"≤{d}turns" for d in depth_buckets] + [f">{depth_buckets[-1]}turns"]
     results = {lbl: {"correct": 0, "total": 0} for lbl in bucket_labels}
 
     if dataset_path is not None:
-        ds = load_from_disk(dataset_path)["test"]
+        # Local snapshot from snapshot_download — find json/parquet files and load directly.
+        import glob as _glob
+        local = Path(dataset_path)
+        json_files   = _glob.glob(str(local / "**/*.json"),    recursive=True)
+        jsonl_files  = _glob.glob(str(local / "**/*.jsonl"),   recursive=True)
+        parquet_files = _glob.glob(str(local / "**/*.parquet"), recursive=True)
+        if parquet_files:
+            ds = load_dataset("parquet", data_files=parquet_files, split="train", streaming=True)
+        elif jsonl_files:
+            ds = load_dataset("json", data_files=jsonl_files, split="train", streaming=True)
+        elif json_files:
+            ds = load_dataset("json", data_files=json_files, split="train", streaming=True)
+        else:
+            raise FileNotFoundError(f"No json/jsonl/parquet files found in {dataset_path}")
     else:
         ds = load_dataset("xiaowu0162/LongMemEval", split="test", streaming=True)
     seen = 0
