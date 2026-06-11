@@ -102,20 +102,25 @@ def run_eval(model, tokenizer, T, seq_len, max_examples, depth_buckets, dataset_
     results = {lbl: {"correct": 0, "total": 0} for lbl in bucket_labels}
 
     if dataset_path is not None:
-        # Local snapshot from snapshot_download — find json/parquet files and load directly.
-        import glob as _glob
+        # snapshot_download saves files without extensions (longmemeval_oracle, etc.).
+        # Use the oracle split; fall back to _m then _s.
+        import json as _json
         local = Path(dataset_path)
-        json_files   = _glob.glob(str(local / "**/*.json"),    recursive=True)
-        jsonl_files  = _glob.glob(str(local / "**/*.jsonl"),   recursive=True)
-        parquet_files = _glob.glob(str(local / "**/*.parquet"), recursive=True)
-        if parquet_files:
-            ds = load_dataset("parquet", data_files=parquet_files, split="train", streaming=True)
-        elif jsonl_files:
-            ds = load_dataset("json", data_files=jsonl_files, split="train", streaming=True)
-        elif json_files:
-            ds = load_dataset("json", data_files=json_files, split="train", streaming=True)
+        for candidate in ("longmemeval_oracle", "longmemeval_m", "longmemeval_s"):
+            p = local / candidate
+            if p.exists():
+                with open(p) as f:
+                    raw = _json.load(f)
+                # file is either a list of examples or {"test": [...]} / {"data": [...]}
+                if isinstance(raw, list):
+                    ds = raw
+                elif isinstance(raw, dict):
+                    ds = next(iter(raw.values()))
+                break
         else:
-            raise FileNotFoundError(f"No json/jsonl/parquet files found in {dataset_path}")
+            raise FileNotFoundError(
+                f"Could not find longmemeval_oracle/m/s in {dataset_path}"
+            )
     else:
         ds = load_dataset("xiaowu0162/LongMemEval", split="test", streaming=True)
     seen = 0
