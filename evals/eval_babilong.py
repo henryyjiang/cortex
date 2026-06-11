@@ -87,7 +87,7 @@ def eval_one(model, tokenizer, context, question, answer, T, seq_len) -> bool:
     out   = model(input_ids=chunk, num_steps=num_steps,
                   m_cross_in=m_cross, return_m_cross=False)
     pred  = tokenizer.decode([out["logits"][0, -1].argmax(dim=-1).item()]).strip().lower()
-    return pred == answer.strip().lower()
+    return pred == str(answer).strip().lower()
 
 
 # ---------------------------------------------------------------------------
@@ -124,9 +124,9 @@ def run_task(task_name, model, tokenizer, T, seq_len, max_examples, length_bucke
 
         seen = 0
         for ex in ds:
-            ctx      = ex.get("context", ex.get("text", ""))
+            ctx      = ex.get("input", ex.get("context", ex.get("text", "")))
             question = ex.get("question", "")
-            answer   = ex.get("answer", "")
+            answer   = str(ex.get("target", ex.get("answer", "")))
             if not ctx or not question or not answer:
                 continue
 
