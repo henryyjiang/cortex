@@ -44,6 +44,9 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--length_buckets", nargs="+", type=int,
                    default=[1000, 2000, 4000, 8000, 16000, 32000])
     p.add_argument("--out_dir",       default="eval_results/babilong")
+    p.add_argument("--dataset_path",  default=None,
+                   help="Local path to pre-downloaded BABILong snapshot (snapshot_download). "
+                        "Required on nodes without internet access.")
     p.add_argument("--dtype",         default="bfloat16", choices=["float32", "bfloat16"])
     return p.parse_args()
 
@@ -91,7 +94,8 @@ def eval_one(model, tokenizer, context, question, answer, T, seq_len) -> bool:
 # Task loop
 # ---------------------------------------------------------------------------
 
-def run_task(task_name, model, tokenizer, T, seq_len, max_examples, length_buckets):
+def run_task(task_name, model, tokenizer, T, seq_len, max_examples, length_buckets,
+             dataset_path=None):
     from datasets import load_dataset
 
     # BABILong uses config name for context length (e.g. '1k', '4k') and
@@ -101,8 +105,21 @@ def run_task(task_name, model, tokenizer, T, seq_len, max_examples, length_bucke
 
     for cfg in config_names:
         try:
-            ds = load_dataset("RMT-team/BABILong", cfg, split=task_name,
-                              streaming=True, trust_remote_code=True)
+            if dataset_path is not None:
+                # snapshot_download layout: data/<task>/<cfg>.json
+                import glob as _glob
+                from pathlib import Path as _Path
+                candidates = (
+                    _glob.glob(str(_Path(dataset_path) / "**" / task_name / f"{cfg}.json"), recursive=True)
+                    + _glob.glob(str(_Path(dataset_path) / "**" / f"{task_name}_{cfg}.json"), recursive=True)
+                    + _glob.glob(str(_Path(dataset_path) / "**" / f"{cfg}" / f"{task_name}.json"), recursive=True)
+                )
+                if not candidates:
+                    print(f"  [{task_name}/{cfg}] skipping — no local file found in {dataset_path}")
+                    continue
+                ds = load_dataset("json", data_files=candidates, split="train", streaming=True)
+            else:
+                ds = load_dataset("RMT-team/BABILong", cfg, split=task_name, streaming=True)
         except Exception as e:
             print(f"  [{task_name}/{cfg}] skipping — {e}")
             continue
@@ -160,7 +177,8 @@ def main() -> None:
     for task in args.tasks:
         print(f"\n--- {task} ---")
         task_results = run_task(task, model, tokenizer, T, args.seq_len,
-                                args.max_examples, args.length_buckets)
+                                args.max_examples, args.length_buckets,
+                                dataset_path=args.dataset_path)
         all_results[label][task] = task_results
 
         print(f"  {'Bucket':<12} {'Correct':>8} {'Total':>8} {'Acc':>8}")

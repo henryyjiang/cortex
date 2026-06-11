@@ -125,10 +125,15 @@ def run_eval(model, tokenizer, T, seq_len, max_examples, depth_buckets, dataset_
         ds = load_dataset("xiaowu0162/LongMemEval", split="test", streaming=True)
     seen = 0
     for ex in ds:
-        turns    = ex.get("history", ex.get("messages", []))
         question = ex.get("question", "")
         answer   = ex.get("answer", "")
-        depth    = ex.get("turn_depth", ex.get("depth", len(turns)))
+        # haystack_sessions is stored as a JSON string of [[{role,content},...],...]
+        raw_sessions = ex.get("haystack_sessions", "[]")
+        try:
+            turns = json.loads(raw_sessions) if isinstance(raw_sessions, str) else raw_sessions
+        except Exception:
+            continue
+        depth = len(turns)
         if not turns or not question or not answer:
             continue
 
@@ -141,7 +146,9 @@ def run_eval(model, tokenizer, T, seq_len, max_examples, depth_buckets, dataset_
         if max_examples > 0 and results[bucket]["total"] >= max_examples:
             continue
 
-        if eval_one(model, tokenizer, turns, question, answer, T, seq_len):
+        # Flatten all sessions into a single turn list for the model
+        all_turns = [turn for session in turns for turn in session]
+        if eval_one(model, tokenizer, all_turns, question, answer, T, seq_len):
             results[bucket]["correct"] += 1
         results[bucket]["total"] += 1
         seen += 1

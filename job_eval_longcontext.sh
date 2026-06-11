@@ -22,6 +22,7 @@ mkdir -p "$RESULTS_DIR"
 # Pre-downloaded dataset (no internet on compute nodes).
 # Run once on a login node: python evals/download_datasets.py
 LONGMEMEVAL_PATH="data/LongMemEval"
+BABILONG_PATH="data/BABILong"
 
 # ── Checkpoint paths ──────────────────────────────────────────────────────────
 CORTEX_CKPT="runs/cortex-5b/checkpoint_0154441/checkpoint.pt"
@@ -61,6 +62,7 @@ for MODEL in "${MODELS[@]}"; do
         --memory_slots "${MEM_SLOTS[$MODEL]}" \
         ${T_FLAG[$MODEL]} \
         --tasks qa1 qa2 qa3 \
+        --dataset_path "$BABILONG_PATH" \
         --out_dir "$RESULTS_DIR/babilong/$MODEL"
 done
 

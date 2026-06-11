@@ -17,10 +17,19 @@ ROOT.mkdir(exist_ok=True)
 token = os.environ.get("HF_TOKEN") or None
 
 print("Downloading xiaowu0162/LongMemEval ...")
-local_dir = snapshot_download(
+snapshot_download(
     repo_id   = "xiaowu0162/LongMemEval",
     repo_type = "dataset",
     local_dir = str(ROOT / "LongMemEval"),
     token     = token,
 )
-print(f"Saved → {local_dir}")
+print(f"Saved → {ROOT / 'LongMemEval'}")
+
+print("Downloading RMT-team/BABILong ...")
+snapshot_download(
+    repo_id   = "RMT-team/BABILong",
+    repo_type = "dataset",
+    local_dir = str(ROOT / "BABILong"),
+    token     = token,
+)
+print(f"Saved → {ROOT / 'BABILong'}")
