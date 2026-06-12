@@ -23,6 +23,26 @@ Changes from v1
               (Parcae §4.1 — replaces flat -2.0 init that gave decay ≈ 0.881)
   [model #12] per-sequence depth sampling via _loop_per_sequence
               (Parcae §4.2 — each sequence in the batch gets its own sampled T)
+  [model #13] M_iter is per-position: the sequence dim is folded into the batch
+              dim ([B*S, K, D]) so each token position accumulates only its OWN
+              loop states across iterations.  The previous mean-pool over the
+              whole sequence leaked future-token information into past
+              positions (h_T[j] encodes tokens <= j; pooling + re-injection let
+              position i < j condition on tokens > i).  Per-position buffers
+              are also the faithful reading of the framework §0: "during a
+              single token's T Loop passes, the h_T from each completed pass
+              is written into M_iter".
+  [model #14] EOS-aware cross-state handling: forward() accepts the segment's
+              eos_mask and applies per-lane document boundaries itself —
+              (a) read: only positions up to the FIRST EOS (the document
+              continuing from the previous segment) read the carried state;
+              (b) write: only the suffix after the LAST EOS (the document
+              still open at the segment boundary) is pooled into the write;
+              (c) the incoming buffer (the ended document's state) is excluded
+              from the gated update when a document ended.  Replaces the
+              train-loop's any-EOS full zeroing, which left the carried buffer
+              ~always zero on packed Pile data (short docs → almost every
+              2048-token segment contains an EOS).
 """
 from __future__ import annotations
 
@@ -64,8 +84,18 @@ class CortexConfig:
     memory_slots: int = 0
     memory_heads: int = 4
 
-    # M_iter buffer (Run 2 only, K_iter=0 disables)
+    # M_iter buffer (Run 2 only, K_iter=0 disables).
+    # Per-position: each token position keeps its own K_iter slots ([B*S, K, D]),
+    # written from that position's loop state only — never pooled across the
+    # sequence, which would leak future tokens into past positions.
     memory_slots_iter: int = 0
+
+    # Direct CCoT carry (Cortex K=0): when True and memory_slots == 0, carry a
+    # pooled projection of h_T across segments and add it at the start of the
+    # loop block (Coconut-style, no LM2 machinery).  Distinguishes Cortex K=0
+    # from the Parcae baseline.  Ignored when memory_slots > 0 (LM2 buffer
+    # takes precedence).
+    ccot_direct: bool = False
 
     # R4 dual-role mitigation (Lu et al. 2025, arXiv:2507.02199 / Parcae §C matrix)
     # Projects h_T into a separate embedding space before M_cross write, decoupling
@@ -183,14 +213,28 @@ class LSTMBuffer(nn.Module):
     """
     K-slot LSTM-gated memory buffer.
 
-    Write: LSTM-style gated update where both gates receive a combined signal
-           from the pooled input *and* the current buffer state (memory feedback).
-           Matches LM2 create_gates: gate_in = f(inputs) + g(tanh(memory)).
-           One combined projection outputs 2·D, split evenly into ig/fg.
+    Write: per-slot candidates via cross-attention — each slot (its content
+           plus a learned slot embedding) QUERIES the sequence states, so the
+           K slots extract distinct information by construction.  This is the
+           relational-memory-style update that LM2's MemoryModule descends
+           from (memory attends over inputs), replacing an earlier pooled
+           design where one mean vector was broadcast to all slots and slot
+           updates were near-redundant (threatening the K=4 > K=1 requirement,
+           framework §4.4).  The gated update itself is LSTM-style with both
+           gates receiving a combined signal from the pooled input *and* the
+           current buffer state (memory feedback) — matches LM2 create_gates:
+           gate_in = f(inputs) + g(tanh(memory)), one combined 2·D projection
+           split evenly into ig/fg.
 
     Read:  cross-attention — sequence tokens query the K buffer slots —
            result additively injected into the loop state.
            (Cleaner than LM2's forced-square design; no seq_len==K constraint.)
+
+    Granularity is the caller's choice: M_cross passes [B, S, D] (one buffer
+    per sequence, pooled write — only safe because its content is read by a
+    strictly-later segment).  M_iter folds the sequence dim into the batch and
+    passes [B*S, 1, D] (one buffer per position) — required for causality,
+    since M_iter is read again at earlier positions within the same forward.
 
     Key LM2 §3 details preserved
     ------------------------------
@@ -219,13 +263,24 @@ class LSTMBuffer(nn.Module):
         self.forget_bias   = nn.Parameter(torch.ones(1))   # +1.0 per LM2 §3.3
         self.input_bias    = nn.Parameter(torch.zeros(1))
 
-        # Candidate refinement (LM2 attend_over_memory: LN → MLP → LN).
-        # cand_proj maps the pooled input into the K-slot space (analogous to LM2's
-        # attention step that mixes input information into memory space).  The result
-        # is then residually combined with the current buffer and refined through a
-        # 2-layer ReLU MLP with LayerNorm on both ends — matching the structure of
-        # attend_over_memory exactly (attended_memory_layernorm + MLP + layernorm2).
-        self.cand_proj  = nn.Linear(hidden_size, n_slots * hidden_size)
+        # Candidate via slot-query cross-attention (LM2 attend_over_memory /
+        # relational memory): each slot queries the sequence states, so the K
+        # candidates are slot-distinct by construction.  Slot identity comes
+        # from learned slot embeddings (added to both the query and the
+        # candidate residual — without the residual term, slots whose buffer
+        # content is identical, e.g. all-zero at the first write, would
+        # receive identical updates forever and collapse to K copies).
+        self.slot_emb = nn.Parameter(torch.empty(n_slots, hidden_size))
+        nn.init.normal_(self.slot_emb, std=0.02)
+        # Embedding-like: exempt from weight decay and Muon Newton-Schulz.
+        self.slot_emb._no_weight_decay = True
+
+        self.wq_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.wk_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.wv_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+
+        # Refinement after attention (LM2 attend_over_memory: LN → MLP → LN —
+        # attended_memory_layernorm + 2-layer ReLU MLP + layernorm2).
         self.cand_ln1   = nn.LayerNorm(hidden_size)
         self.cand_mlp1  = nn.Linear(hidden_size, hidden_size)
         self.cand_mlp2  = nn.Linear(hidden_size, hidden_size)
@@ -238,10 +293,19 @@ class LSTMBuffer(nn.Module):
         self.out_proj = nn.Linear(hidden_size, hidden_size, bias=False)
         nn.init.zeros_(self.out_proj.weight)  # additive injection starts at zero
 
-    def write(self, h_T: torch.Tensor, buffer: torch.Tensor) -> torch.Tensor:
+    def write(
+        self,
+        h_T: torch.Tensor,
+        buffer: torch.Tensor,
+        pool_mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         """
-        h_T   : [B, S, D]  — final Loop state
-        buffer: [B, K, D]  — current K-slot buffer
+        h_T      : [B, S, D]  — final Loop state
+        buffer   : [B, K, D]  — current K-slot buffer
+        pool_mask: [B, S] bool, optional — positions the write may use
+                   (restricts both the gate-input pooling and the candidate
+                   attention to the still-open document's suffix in packed
+                   segments).  None = use all positions.
         Returns updated buffer [B, K, D].
 
         Gate computation (LM2 create_gates):
@@ -249,19 +313,24 @@ class LSTMBuffer(nn.Module):
                    + gate_proj_mem(tanh(buffer)) [B,K,2D]     ← both gates, combined signal
           ig, fg   = chunk(sigmoid(gate_in + bias), 2, dim=-1)     each [B, K, D]
 
-        Candidate (LM2 attend_over_memory: LN → 2-layer ReLU MLP → LN):
-          cand_base = cand_proj(mean(h_T)).view(B, K, D)
-          cand      = LN1(buffer + cand_base)              ← residual from current buffer
-          cand      = LN2(cand + mlp2(relu(mlp1(cand))))  ← MLP refinement
+        Candidate (slot-query cross-attention, then LM2 LN → MLP → LN):
+          q         = wq(buffer + slot_emb)                ← slot-distinct queries
+          attended  = MHA(q, wk(h_T), wv(h_T))             ← [B, K, D], masked by pool_mask
+          cand      = LN1(buffer + slot_emb + attended)    ← residual keeps slot identity
+          cand      = LN2(cand + mlp2(relu(mlp1(cand))))   ← MLP refinement
           candidate = tanh(cand)
 
           new_buf  = fg ⊙ buffer  +  ig ⊙ candidate
         """
         B, S, D = h_T.shape
-        K = self.n_slots
+        K, nh, hd = self.n_slots, self.n_heads, self.head_dim
 
-        # Pool sequence → single summary vector [B, D]
-        h_pool = h_T.mean(dim=1)
+        # Pool sequence → single summary vector [B, D] for the gate input side
+        if pool_mask is None:
+            h_pool = h_T.mean(dim=1)
+        else:
+            m = pool_mask.to(h_T.dtype).unsqueeze(-1)                  # [B, S, 1]
+            h_pool = (h_T * m).sum(dim=1) / m.sum(dim=1).clamp(min=1.0)
 
         # Input side: [B, 2D] → expand to [B, K, 2D]
         in_signal  = self.gate_proj_in(h_pool).unsqueeze(1).expand(-1, K, -1)  # [B, K, 2D]
@@ -276,15 +345,35 @@ class LSTMBuffer(nn.Module):
         ig = torch.sigmoid(ig_logits + self.input_bias)                        # [B, K, D]
         fg = torch.sigmoid(fg_logits + self.forget_bias)                       # [B, K, D]
 
-        # Candidate refinement (LM2 attend_over_memory: LN → MLP → LN).
-        # cand_proj mixes input information into slot space, then the residual with
-        # the current buffer is refined through a 2-layer MLP — structurally matching:
-        #   memory = LN(memory + attended_memory)      ← LM2 attended_memory_layernorm
-        #   memory = LN(memory + relu(fc2(relu(fc1(memory)))))  ← LM2 layernorm2
-        cand_base = self.cand_proj(h_pool).view(B, K, D)              # [B, K, D]
-        cand      = self.cand_ln1(buffer + cand_base)                  # LN1 with buffer residual
+        # Candidate: each slot queries the sequence states, so the K candidates
+        # are slot-distinct by construction (relational-memory-style write).
+        slots = buffer + self.slot_emb.unsqueeze(0)                            # [B, K, D]
+        q = self.wq_proj(slots).view(B, K, nh, hd).transpose(1, 2)             # [B, nh, K, hd]
+        k = self.wk_proj(h_T).view(B, S, nh, hd).transpose(1, 2)               # [B, nh, S, hd]
+        v = self.wv_proj(h_T).view(B, S, nh, hd).transpose(1, 2)               # [B, nh, S, hd]
+
+        scores = (q @ k.transpose(-2, -1)) / math.sqrt(hd)                     # [B, nh, K, S]
+        if pool_mask is not None:
+            # Restrict attention to the allowed positions.  Rows with NO
+            # allowed position would softmax over all -inf (NaN): attend
+            # unmasked instead and zero the result below — forward() also
+            # zeroes the whole written row for such lanes via valid_write.
+            valid     = pool_mask.any(dim=1)                                   # [B]
+            safe_mask = pool_mask | (~valid).unsqueeze(1)                      # [B, S]
+            scores    = scores.masked_fill(
+                ~safe_mask.view(B, 1, 1, S), torch.finfo(scores.dtype).min
+            )
+        attended = F.softmax(scores, dim=-1) @ v                               # [B, nh, K, hd]
+        attended = attended.transpose(1, 2).contiguous().view(B, K, D)
+        if pool_mask is not None:
+            attended = attended * valid.view(B, 1, 1).to(attended.dtype)
+
+        # Refinement (LM2 attend_over_memory):
+        #   memory = LN(memory + attended_memory)      ← attended_memory_layernorm
+        #   memory = LN(memory + relu(fc2(relu(fc1(memory)))))  ← layernorm2
+        cand      = self.cand_ln1(slots + attended)            # LN1, slot-identity residual
         mlp_out   = self.cand_mlp2(F.relu(self.cand_mlp1(cand)))
-        candidate = torch.tanh(self.cand_ln2(cand + mlp_out))         # LN2 with MLP residual
+        candidate = torch.tanh(self.cand_ln2(cand + mlp_out))  # LN2 with MLP residual
 
         return fg * buffer + ig * candidate
 
@@ -304,6 +393,63 @@ class LSTMBuffer(nn.Module):
         attn = F.softmax((q @ k.transpose(-2, -1)) / math.sqrt(hd), dim=-1)
         out  = (attn @ v).transpose(1, 2).contiguous().view(B, S, D)
         return self.out_proj(out)
+
+
+# ---------------------------------------------------------------------------
+# Direct CCoT carry (Cortex K=0 mode — Coconut-style, no LM2 machinery)
+# ---------------------------------------------------------------------------
+
+class DirectCCoT(nn.Module):
+    """
+    Direct cross-token CCoT state for K=0 Cortex (framework §4.4: the
+    "Coconut-equivalent" — additive injection of a single carried vector,
+    no slots, no gates, no cross-attention).
+
+    Used when memory_slots == 0 so that Cortex K=0 remains an architectural
+    superset of the Parcae baseline (which carries nothing) instead of being
+    identical to it.
+
+    write: state = state_proj(mean_S(h_T))   [B, 1, D]   (overwrite, stateless)
+           state_proj is identity-init and doubles as the R4 dual-role
+           mitigation: the carry path sees a projected h_T while the Coda
+           sees the raw h_T (same role as h_T_proj in the LM2 buffer mode).
+    read:  h + in_proj(state), broadcast over positions.
+           in_proj is zero-init so the injection is a no-op at step 0.
+
+    Trains through the same cross-chunk segment chain as the LM2 buffer:
+    segment g+1's read of the un-detached state puts state_proj on the loss
+    path.  Unlike the LM2 buffer there are no memory-feedback parameters, so
+    n_chunks >= 2 suffices to train the whole module.
+    """
+
+    def __init__(self, hidden_size: int) -> None:
+        super().__init__()
+        self.state_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.in_proj    = nn.Linear(hidden_size, hidden_size, bias=False)
+        nn.init.eye_(self.state_proj.weight)
+        nn.init.zeros_(self.in_proj.weight)
+        # Identity-init structural projection (same treatment as h_T_proj /
+        # Parcae's C matrix): no weight decay, no Muon Newton-Schulz.
+        # in_proj is a regular learned projection and stays in Muon (like the
+        # LSTMBuffer's zero-init out_proj).
+        self.state_proj.weight._no_weight_decay = True
+
+    def write(
+        self, h_T: torch.Tensor, pool_mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        """h_T [B, S, D] → state [B, 1, D].  Overwrites any previous state.
+        pool_mask [B, S] optionally restricts pooling to the open document's
+        suffix (same semantics as LSTMBuffer.write)."""
+        if pool_mask is None:
+            pooled = h_T.mean(dim=1, keepdim=True)
+        else:
+            m = pool_mask.to(h_T.dtype).unsqueeze(-1)                  # [B, S, 1]
+            pooled = ((h_T * m).sum(dim=1) / m.sum(dim=1).clamp(min=1.0)).unsqueeze(1)
+        return self.state_proj(pooled)
+
+    def read(self, state: torch.Tensor) -> torch.Tensor:
+        """state [B, 1, D] → delta [B, 1, D], broadcast-added over positions."""
+        return self.in_proj(state)
 
 
 # ---------------------------------------------------------------------------
@@ -400,6 +546,12 @@ class CortexGPT(nn.Module):
             if config.memory_slots_iter > 0 else None
         )
 
+        # Direct CCoT carry — only in K=0 mode; LM2 buffer takes precedence.
+        self.ccot_direct: Optional[DirectCCoT] = (
+            DirectCCoT(config.hidden_size)
+            if (config.ccot_direct and config.memory_slots == 0) else None
+        )
+
         # R4 dual-role mitigation: separate linear projection applied to h_T before
         # writing to M_cross.  The Coda always receives the raw h_T; only the buffer
         # write path sees the projected representation.  Identity-initialized so the
@@ -410,10 +562,21 @@ class CortexGPT(nn.Module):
         if config.h_T_proj and config.memory_slots > 0:
             self.h_T_proj = nn.Linear(config.hidden_size, config.hidden_size, bias=False)
             nn.init.eye_(self.h_T_proj.weight)
+            # Identity-init structural projection (Parcae flags its analogous
+            # C matrix the same way): exempt from weight decay AND from Muon's
+            # Newton-Schulz, which would orthogonalise away the identity init.
+            self.h_T_proj.weight._no_weight_decay = True
 
         # Scalable init on loop block output projections (from-scratch only)
         if config.scalable_init:
             self._apply_scalable_init()
+
+    @property
+    def has_cross_state(self) -> bool:
+        """True if the model carries cross-segment state through m_cross_in /
+        out["m_cross"] — either the LM2 K-slot buffer ([B, K, D]) or the
+        direct K=0 CCoT carry ([B, 1, D])."""
+        return self.m_cross is not None or self.ccot_direct is not None
 
     # ------------------------------------------------------------------
     # Initialisation
@@ -488,19 +651,46 @@ class CortexGPT(nn.Module):
         pos_emb: tuple,
         cross_buf: Optional[torch.Tensor],
         iter_buf:  Optional[torch.Tensor],
+        cross_read_mask: Optional[torch.Tensor] = None,   # [B, S, 1]
     ) -> torch.Tensor:
         # LTI: stable combination of prior state and current encoding
         h = self.lti(h, z0)
 
-        # Buffer injections (additive into first loop layer input)
+        # Buffer injections (additive into first loop layer input).
+        # cross_read_mask zeroes the injection at positions belonging to
+        # documents that started inside this segment — equivalent to those
+        # positions reading an empty buffer (the carried state belongs to the
+        # document continuing from the previous segment only).
         if self.m_cross is not None and cross_buf is not None:
-            h = h + self.m_cross.read(h, cross_buf)
+            delta = self.m_cross.read(h, cross_buf)
+            h = h + (delta * cross_read_mask if cross_read_mask is not None else delta)
+        elif self.ccot_direct is not None and cross_buf is not None:
+            # K=0 direct carry: [B, 1, D] state broadcast over all positions
+            delta = self.ccot_direct.read(cross_buf)
+            h = h + (delta * cross_read_mask if cross_read_mask is not None else delta)
         if self.m_iter is not None and iter_buf is not None:
-            h = h + self.m_iter.read(h, iter_buf)
+            # Per-position read: position s queries only its own K slots
+            # ([B*S, K, D] buffer), so no information crosses positions.
+            B, S, D = h.shape
+            h = h + self.m_iter.read(h.reshape(B * S, 1, D), iter_buf).reshape(B, S, D)
 
         for layer in self.loop_layers:
             h = self._layer_fwd(h, layer, attn_mask, pos_emb)
         return h
+
+    # ------------------------------------------------------------------
+    # M_iter helpers (per-position buffer, sequence dim folded into batch)
+    # ------------------------------------------------------------------
+
+    def _new_iter_buf(self, h: torch.Tensor) -> torch.Tensor:
+        """Zero-initialised per-position buffer [B*S, K_iter, D]."""
+        B, S, D = h.shape
+        return h.new_zeros(B * S, self.config.memory_slots_iter, D)
+
+    def _iter_write(self, h: torch.Tensor, iter_buf: torch.Tensor) -> torch.Tensor:
+        """Write each position's state into that position's own slots only."""
+        B, S, D = h.shape
+        return self.m_iter.write(h.reshape(B * S, 1, D), iter_buf)
 
     # ------------------------------------------------------------------
     # State initialisation
@@ -534,22 +724,24 @@ class CortexGPT(nn.Module):
         n_nograd: int,
         k_grad: int,
         m_cross_in: Optional[torch.Tensor],
+        cross_read_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        B = h.shape[0]
         iter_buf: Optional[torch.Tensor] = None
         if self.m_iter is not None:
-            iter_buf = h.new_zeros(B, self.config.memory_slots_iter, self.config.hidden_size)
+            iter_buf = self._new_iter_buf(h)
 
         with torch.no_grad():
             for _ in range(n_nograd):
-                h = self._loop_iter(h, z0, attn4d, pos_emb, m_cross_in, iter_buf)
+                h = self._loop_iter(h, z0, attn4d, pos_emb, m_cross_in, iter_buf,
+                                    cross_read_mask)
                 if self.m_iter is not None:
-                    iter_buf = self.m_iter.write(h, iter_buf)
+                    iter_buf = self._iter_write(h, iter_buf)
 
         for _ in range(k_grad):
-            h = self._loop_iter(h, z0, attn4d, pos_emb, m_cross_in, iter_buf)
+            h = self._loop_iter(h, z0, attn4d, pos_emb, m_cross_in, iter_buf,
+                                cross_read_mask)
             if self.m_iter is not None:
-                iter_buf = self.m_iter.write(h, iter_buf)
+                iter_buf = self._iter_write(h, iter_buf)
 
         return h
 
@@ -565,6 +757,7 @@ class CortexGPT(nn.Module):
         pos_emb: tuple,
         per_seq_steps: list[tuple[int, int]],
         m_cross_in: Optional[torch.Tensor],
+        cross_read_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """
         Each sequence i gets (n_i, k_i) independently sampled by the caller.
@@ -590,23 +783,24 @@ class CortexGPT(nn.Module):
             pos_emb_i = (cos[i:i+1] if cos.shape[0] == B else cos,
                          sin[i:i+1] if sin.shape[0] == B else sin)
             cross_i = m_cross_in[i:i+1] if m_cross_in is not None else None
+            mask_i  = cross_read_mask[i:i+1] if cross_read_mask is not None else None
 
             iter_buf_i: Optional[torch.Tensor] = None
             if self.m_iter is not None:
-                iter_buf_i = h_i.new_zeros(
-                    1, self.config.memory_slots_iter, self.config.hidden_size
-                )
+                iter_buf_i = self._new_iter_buf(h_i)
 
             with torch.no_grad():
                 for _ in range(n_i):
-                    h_i = self._loop_iter(h_i, z0_i, attn_i, pos_emb_i, cross_i, iter_buf_i)
+                    h_i = self._loop_iter(h_i, z0_i, attn_i, pos_emb_i, cross_i,
+                                          iter_buf_i, mask_i)
                     if self.m_iter is not None:
-                        iter_buf_i = self.m_iter.write(h_i, iter_buf_i)
+                        iter_buf_i = self._iter_write(h_i, iter_buf_i)
 
             for _ in range(k_i):
-                h_i = self._loop_iter(h_i, z0_i, attn_i, pos_emb_i, cross_i, iter_buf_i)
+                h_i = self._loop_iter(h_i, z0_i, attn_i, pos_emb_i, cross_i,
+                                      iter_buf_i, mask_i)
                 if self.m_iter is not None:
-                    iter_buf_i = self.m_iter.write(h_i, iter_buf_i)
+                    iter_buf_i = self._iter_write(h_i, iter_buf_i)
 
             h_out[i] = h_i[0]
 
@@ -628,6 +822,10 @@ class CortexGPT(nn.Module):
         num_steps:        Optional[Union[torch.Tensor, list]] = None,
         m_cross_in:       Optional[torch.Tensor] = None,
         return_m_cross:   bool = False,
+        # [B, S] bool, True at the last token (EOS) of each packed document.
+        # Enables per-lane document handling of the cross state (see below).
+        # None = no document boundaries in this segment (e.g. eval carry).
+        eos_mask:         Optional[torch.Tensor] = None,
     ) -> dict:
         B, S   = input_ids.shape
         device = input_ids.device
@@ -655,6 +853,43 @@ class CortexGPT(nn.Module):
         dtype  = self.embed_in.weight.dtype
         attn4d = self._build_attn_mask(attention_mask, S, device, dtype)
 
+        # ── EOS-aware cross-state document handling ──────────────────────────
+        # Packed segments can contain several documents.  The carried state
+        # belongs to the document continuing from the previous segment, and the
+        # state written for the next segment must describe the document still
+        # open at this segment's end.  Three per-lane masks implement this:
+        #   read mask   — positions p <= first EOS may read the carried state;
+        #                 later positions belong to documents that started inside
+        #                 this segment and read nothing (== empty buffer).
+        #   pool mask   — only positions p > last EOS (the open document's
+        #                 suffix) are pooled into the write.
+        #   write reset — the incoming buffer (the ended document's state) is
+        #                 excluded from the gated update when an EOS occurred.
+        # Replaces the old any-EOS full zeroing, which left the buffer ~always
+        # zero on packed short-document data.
+        cross_read_mask: Optional[torch.Tensor] = None   # [B, S, 1] in h dtype
+        pool_mask:       Optional[torch.Tensor] = None   # [B, S] bool
+        write_reset:     Optional[torch.Tensor] = None   # [B] bool
+        valid_write:     Optional[torch.Tensor] = None   # [B] bool
+        if eos_mask is not None and self.has_cross_state:
+            eos_b   = eos_mask.bool()
+            has_eos = eos_b.any(dim=1)                                       # [B]
+            pos     = torch.arange(S, device=device)
+            first_eos = torch.where(
+                has_eos, eos_b.int().argmax(dim=1),
+                torch.full((B,), S - 1, dtype=torch.long, device=device),
+            )
+            cross_read_mask = (
+                (pos.unsqueeze(0) <= first_eos.unsqueeze(1))                 # [B, S]
+                .unsqueeze(-1).to(dtype)                                     # [B, S, 1]
+            )
+            last_eos  = S - 1 - eos_b.flip(1).int().argmax(dim=1)            # valid where has_eos
+            pool_mask = (pos.unsqueeze(0) > last_eos.unsqueeze(1)) | (~has_eos).unsqueeze(1)
+            # Open-document suffix may be empty (EOS at the final position) —
+            # then there is nothing to carry and the written state must be zero.
+            valid_write = pool_mask.any(dim=1)                               # [B]
+            write_reset = has_eos
+
         # ── Token embedding ──────────────────────────────────────────────────
         x = self.emb_dropout(self.embed_in(input_ids))
 
@@ -677,10 +912,12 @@ class CortexGPT(nn.Module):
         h = self._init_state(z0)
 
         if use_per_seq:
-            h = self._loop_per_sequence(h, z0, attn4d, pos_emb, per_seq_steps, m_cross_in)
+            h = self._loop_per_sequence(h, z0, attn4d, pos_emb, per_seq_steps,
+                                        m_cross_in, cross_read_mask)
         else:
             n_nograd, k_grad = per_seq_steps[0]
-            h = self._loop_batched(h, z0, attn4d, pos_emb, n_nograd, k_grad, m_cross_in)
+            h = self._loop_batched(h, z0, attn4d, pos_emb, n_nograd, k_grad,
+                                   m_cross_in, cross_read_mask)
 
         h_T = h
 
@@ -692,8 +929,21 @@ class CortexGPT(nn.Module):
         if self.m_cross is not None:
             h_T_for_write = self.h_T_proj(h_T) if self.h_T_proj is not None else h_T
             if m_cross_in is None:
-                m_cross_in = h_T.new_zeros(B, self.config.memory_slots, self.config.hidden_size)
-            new_m_cross = self.m_cross.write(h_T_for_write, m_cross_in)
+                write_in = h_T.new_zeros(B, self.config.memory_slots, self.config.hidden_size)
+            elif write_reset is not None:
+                # Exclude the ended document's state from the gated update
+                # (multiplication keeps the graph alive for non-reset lanes).
+                write_in = m_cross_in * (~write_reset).view(-1, 1, 1).to(m_cross_in.dtype)
+            else:
+                write_in = m_cross_in
+            new_m_cross = self.m_cross.write(h_T_for_write, write_in, pool_mask)
+        elif self.ccot_direct is not None:
+            # Direct K=0 carry: stateless overwrite, [B, 1, D]
+            new_m_cross = self.ccot_direct.write(h_T, pool_mask)
+
+        if new_m_cross is not None and valid_write is not None:
+            # Lanes whose open-document suffix is empty carry nothing forward.
+            new_m_cross = new_m_cross * valid_write.view(-1, 1, 1).to(new_m_cross.dtype)
 
         # ── Coda block ───────────────────────────────────────────────────────
         x = h_T
@@ -733,6 +983,7 @@ def build_cortex_gpt(
     h0_init:            str          = "random",
     prelude_norm:       bool         = True,
     retrofit_surgery:   bool         = False,
+    ccot_direct:        bool         = False,
 ) -> tuple[CortexGPT, CortexConfig]:
     from transformers import AutoModelForCausalLM, AutoConfig
 
@@ -781,11 +1032,13 @@ def build_cortex_gpt(
         h0_init           = h0_init,
         prelude_norm      = prelude_norm,
         loop_start_idx    = loop_start_idx,
+        ccot_direct       = ccot_direct,
     )
 
     model = CortexGPT(base, cfg)
     # The pretrained layers arrive in torch_dtype, but the new modules
-    # (LTIInjection, LSTMBuffer, h_T_proj, ln_prelude) are float32 by default.
+    # (LTIInjection, LSTMBuffer, DirectCCoT, h_T_proj, ln_prelude) are float32
+    # by default.
     # Cast the entire model so all parameters share the same dtype.
     model = model.to(dtype=torch_dtype)
     return model, cfg

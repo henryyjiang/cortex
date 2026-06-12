@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import torch
@@ -31,7 +32,8 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser("LongMemEval evaluation for CortexGPT")
     p.add_argument("--checkpoint",   type=str, required=True)
     p.add_argument("--model_name",   default="EleutherAI/pythia-160m")
-    p.add_argument("--memory_slots", type=int, default=0)
+    p.add_argument("--memory_slots", type=int, default=None,
+                   help="Override K; default reads memory_slots from the checkpoint config")
     p.add_argument("--T",            type=int, default=None,
                    help="Recurrence depth at eval (None = use checkpoint mean_recurrence)")
     p.add_argument("--seq_len",      type=int, default=2048)
@@ -76,12 +78,14 @@ def eval_one(model, tokenizer, turns, question, answer, T, seq_len) -> bool:
     device = next(model.parameters()).device
     num_steps = None if T is None else [(0, T)]
 
+    # Prime the cross state on every chunk except the final (prediction) one.
+    # Models without cross state skip priming entirely — nothing is carried.
     m_cross = None
-    for chunk in chunks[:-1]:
-        chunk = chunk.to(device)
-        out   = model(input_ids=chunk, num_steps=num_steps,
-                      m_cross_in=m_cross, return_m_cross=(model.m_cross is not None))
-        if model.m_cross is not None:
+    if model.has_cross_state:
+        for chunk in chunks[:-1]:
+            chunk = chunk.to(device)
+            out   = model(input_ids=chunk, num_steps=num_steps,
+                          m_cross_in=m_cross, return_m_cross=True)
             m_cross = out.get("m_cross")
 
     chunk = chunks[-1].to(device)
@@ -119,10 +123,22 @@ def run_eval(model, tokenizer, T, seq_len, max_examples, depth_buckets, dataset_
                 break
         else:
             raise FileNotFoundError(
-                f"Could not find longmemeval_oracle/m/s in {dataset_path}"
+                f"Could not find longmemeval_oracle/m/s in {dataset_path}. "
+                f"Run `python evals/download_datasets.py` on a login node "
+                f"(it downloads to <repo>/data/LongMemEval) and pass that path "
+                f"via --dataset_path."
             )
     else:
-        ds = load_dataset("xiaowu0162/LongMemEval", split="test", streaming=True)
+        # The hub repo stores extensionless JSON files at the root
+        # (longmemeval_oracle / _m / _s), which load_dataset cannot
+        # auto-resolve — download the file and parse it directly.
+        import json as _json
+        from huggingface_hub import hf_hub_download
+        p = hf_hub_download(repo_id="xiaowu0162/LongMemEval",
+                            repo_type="dataset", filename="longmemeval_oracle")
+        with open(p) as f:
+            raw = _json.load(f)
+        ds = raw if isinstance(raw, list) else next(iter(raw.values()))
     seen = 0
     for ex in ds:
         question = ex.get("question", "")
@@ -205,6 +221,13 @@ def main() -> None:
             f.write(f"{label},{bucket},{r['correct']},{r['total']},{r['accuracy']:.4f}\n")
 
     print(f"\nResults saved → {out_dir}")
+
+    # Guard against silently-empty evals — fail the job loudly instead of
+    # leaving an all-zero results file that looks like a (bad) result.
+    if sum(r["total"] for r in results.values()) == 0:
+        print("ERROR: 0 examples were evaluated — results are empty. "
+              "Check --dataset_path / network access.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

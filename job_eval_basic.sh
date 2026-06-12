@@ -31,12 +31,7 @@ declare -A CKPTS=(
     ["pythia-5b"]="$PYTHIA_CKPT"
     ["parcae-5b"]="$PARCAE_CKPT"
 )
-declare -A MEM_SLOTS=(
-    ["cortex-5b"]=0
-    ["cortex-5b-k4"]=4
-    ["pythia-5b"]=0
-    ["parcae-5b"]=0
-)
+# memory_slots is read from each checkpoint's saved config by the eval CLIs.
 # T=1 for pythia (vanilla transformer); None (omitted) for recurrent models
 # so they use their saved mean_recurrence
 declare -A T_FLAG=(
@@ -56,7 +51,6 @@ for MODEL in "${MODELS[@]}"; do
     echo "[$MODEL]"
     python evals/eval_multiple_choice.py \
         --checkpoint "${CKPTS[$MODEL]}" \
-        --memory_slots "${MEM_SLOTS[$MODEL]}" \
         ${T_FLAG[$MODEL]} \
         --tasks hellaswag winogrande arc_easy arc_challenge piqa \
         --out_dir "$RESULTS_DIR/multiple_choice/$MODEL"
@@ -70,7 +64,6 @@ for MODEL in "${MODELS[@]}"; do
     echo "[$MODEL]"
     python evals/eval_gsm8k.py \
         --checkpoint "${CKPTS[$MODEL]}" \
-        --memory_slots "${MEM_SLOTS[$MODEL]}" \
         ${T_FLAG[$MODEL]} \
         --out_dir "$RESULTS_DIR/gsm8k/$MODEL"
 done

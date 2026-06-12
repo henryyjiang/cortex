@@ -7,6 +7,8 @@ dataset) to build_dataloader for a higher-quality late-training phase.
 
 Uses HuggingFace streaming to avoid downloading full corpora.
 Sequences are packed to `seq_len` tokens with EOS separators.
+Documents are sharded across DDP ranks AND DataLoader workers
+(rank x worker round-robin) so no consumer sees duplicate data.
 
 Buffer reset signal: returned `eos_mask` tensor is True at the last token of each
 document — train.py uses this to reset M_cross at EOS boundaries.
@@ -62,8 +64,13 @@ class TextStreamDataset(IterableDataset):
         self.world_size   = world_size
         self.max_tokens   = max_tokens
 
-    def _stream(self) -> Generator[list[int], None, None]:
-        """Yield token id lists, one per document, with EOS appended."""
+    def _stream(self, shard_id: int, num_shards: int) -> Generator[list[int], None, None]:
+        """Yield token id lists, one per document, with EOS appended.
+
+        Documents are sharded round-robin across num_shards consumers
+        (world_size ranks x num_workers loader workers), so no two consumers
+        ever see the same document.
+        """
         from datasets import load_dataset
 
         ds = load_dataset(
@@ -76,7 +83,7 @@ class TextStreamDataset(IterableDataset):
         eos = self.tokenizer.eos_token_id or 0
 
         for idx, example in enumerate(ds):
-            if idx % self.world_size != self.rank:
+            if idx % num_shards != shard_id:
                 continue
             text = example.get(self.text_column, "")
             if not text:
@@ -86,7 +93,17 @@ class TextStreamDataset(IterableDataset):
             yield ids
 
     def __iter__(self) -> Iterator[dict[str, torch.Tensor]]:
-        rng = random.Random(self.seed + self.rank)
+        # Each DataLoader worker process gets its own copy of this dataset.
+        # Without worker-aware sharding, every worker streams identical data
+        # (same seed -> same shuffle), so each document would be yielded
+        # num_workers times. Shard across rank x worker consumers instead.
+        worker_info = torch.utils.data.get_worker_info()
+        worker_id   = worker_info.id          if worker_info is not None else 0
+        n_workers   = worker_info.num_workers if worker_info is not None else 1
+        shard_id    = self.rank * n_workers + worker_id
+        num_shards  = self.world_size * n_workers
+
+        rng = random.Random(self.seed + shard_id)
         buf: list[list[int]] = []
         tokens_yielded = 0
 
@@ -97,7 +114,7 @@ class TextStreamDataset(IterableDataset):
                 if len(buf) >= self.buffer_size:
                     break
 
-        stream = self._stream()
+        stream = self._stream(shard_id, num_shards)
         _fill(stream)
 
         carry:     list[int]  = []

@@ -33,28 +33,24 @@ echo "============================================================"
 echo "[1/4] cortex-5b"
 python eval_babilong.py \
     --checkpoint "$CORTEX_CKPT" \
-    --memory_slots 0 \
     --T 8 \
     --out_dir "$RESULTS_DIR/babilong/cortex-5b"
 
 echo "[2/4] cortex-5b-k4"
 python eval_babilong.py \
     --checkpoint "$CORTEX_K4_CKPT" \
-    --memory_slots 4 \
     --T 8 \
     --out_dir "$RESULTS_DIR/babilong/cortex-5b-k4"
 
 echo "[3/4] pythia-5b"
 python eval_babilong.py \
     --checkpoint "$PYTHIA_CKPT" \
-    --memory_slots 0 \
     --T 1 \
     --out_dir "$RESULTS_DIR/babilong/pythia-5b"
 
 echo "[4/4] parcae-5b"
 python eval_babilong.py \
     --checkpoint "$PARCAE_CKPT" \
-    --memory_slots 0 \
     --T 8 \
     --out_dir "$RESULTS_DIR/babilong/parcae-5b"
 
@@ -66,28 +62,24 @@ echo "============================================================"
 echo "[1/4] cortex-5b"
 python eval_longmemeval.py \
     --checkpoint "$CORTEX_CKPT" \
-    --memory_slots 0 \
     --T 8 \
     --out_dir "$RESULTS_DIR/longmemeval/cortex-5b"
 
 echo "[2/4] cortex-5b-k4"
 python eval_longmemeval.py \
     --checkpoint "$CORTEX_K4_CKPT" \
-    --memory_slots 4 \
     --T 8 \
     --out_dir "$RESULTS_DIR/longmemeval/cortex-5b-k4"
 
 echo "[3/4] pythia-5b"
 python eval_longmemeval.py \
     --checkpoint "$PYTHIA_CKPT" \
-    --memory_slots 0 \
     --T 1 \
     --out_dir "$RESULTS_DIR/longmemeval/pythia-5b"
 
 echo "[4/4] parcae-5b"
 python eval_longmemeval.py \
     --checkpoint "$PARCAE_CKPT" \
-    --memory_slots 0 \
     --T 8 \
     --out_dir "$RESULTS_DIR/longmemeval/parcae-5b"
 

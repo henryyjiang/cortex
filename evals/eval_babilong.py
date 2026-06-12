@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -33,7 +34,8 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser("BABILong evaluation for CortexGPT")
     p.add_argument("--checkpoint",    type=str, required=True)
     p.add_argument("--model_name",    default="EleutherAI/pythia-160m")
-    p.add_argument("--memory_slots",  type=int, default=0)
+    p.add_argument("--memory_slots",  type=int, default=None,
+                   help="Override K; default reads memory_slots from the checkpoint config")
     p.add_argument("--T",             type=int, default=None,
                    help="Recurrence depth at eval (None = use checkpoint mean_recurrence)")
     p.add_argument("--tasks",         nargs="+", default=["qa1", "qa2", "qa3"],
@@ -76,12 +78,17 @@ def eval_one(model, tokenizer, context, question, answer, T, seq_len) -> bool:
     device = next(model.parameters()).device
     num_steps = None if T is None else [(0, T)]
 
+    # Prime the cross state on every chunk EXCEPT the final one — the final
+    # chunk is the prediction pass and must not read a summary of itself.
+    # Models without cross state skip priming: nothing is carried, so the
+    # prediction depends only on the final chunk.
     m_cross = None
-    for chunk in chunks:
-        chunk = chunk.to(device)
-        out   = model(input_ids=chunk, num_steps=num_steps,
-                      m_cross_in=m_cross, return_m_cross=(model.m_cross is not None))
-        m_cross = out.get("m_cross")
+    if model.has_cross_state:
+        for chunk in chunks[:-1]:
+            chunk = chunk.to(device)
+            out   = model(input_ids=chunk, num_steps=num_steps,
+                          m_cross_in=m_cross, return_m_cross=True)
+            m_cross = out.get("m_cross")
 
     chunk = chunks[-1].to(device)
     out   = model(input_ids=chunk, num_steps=num_steps,
@@ -104,23 +111,38 @@ def run_task(task_name, model, tokenizer, T, seq_len, max_examples, length_bucke
     results = {cfg: {"correct": 0, "total": 0} for cfg in config_names}
 
     for cfg in config_names:
-        try:
-            if dataset_path is not None:
-                # snapshot_download layout: data/<task>/<cfg>.json
-                import glob as _glob
-                from pathlib import Path as _Path
-                candidates = _glob.glob(
-                    str(_Path(dataset_path) / "data" / task_name / f"{cfg}.json")
+        if dataset_path is not None:
+            # Verified hub layout: data/<task>/<length>.json
+            local = Path(dataset_path) / "data" / task_name / f"{cfg}.json"
+            if not local.exists():
+                # A missing local file is a setup error, not a skippable bucket —
+                # silent skipping here is how an entire eval once produced
+                # all-zero "results" without anyone noticing.
+                raise FileNotFoundError(
+                    f"BABILong file not found: {local}\n"
+                    f"Expected snapshot layout data/<task>/<length>.json. "
+                    f"Run `python evals/download_datasets.py` on a login node "
+                    f"(it downloads to <repo>/data/BABILong) and pass that path "
+                    f"via --dataset_path."
                 )
-                if not candidates:
-                    print(f"  [{task_name}/{cfg}] skipping — no local file found in {dataset_path}")
-                    continue
-                ds = load_dataset("json", data_files=candidates, split="train", streaming=True)
-            else:
-                ds = load_dataset("RMT-team/BABILong", cfg, split=task_name, streaming=True)
-        except Exception as e:
-            print(f"  [{task_name}/{cfg}] skipping — {e}")
-            continue
+            ds = load_dataset("json", data_files=str(local), split="train",
+                              streaming=True)
+        else:
+            try:
+                # Load the task/length file directly. Config auto-resolution on
+                # this repo is unreliable (it tries to materialise every
+                # task x length combination, some of which don't exist).
+                ds = load_dataset(
+                    "json",
+                    data_files=f"hf://datasets/RMT-team/BABILong/data/{task_name}/{cfg}.json",
+                    split="train",
+                    streaming=True,
+                )
+            except Exception as e:
+                # Network flake on one bucket shouldn't kill the whole job; the
+                # all-zero guard in main() still fails the run if nothing loads.
+                print(f"  [{task_name}/{cfg}] ERROR loading from hub — {e}")
+                continue
 
         seen = 0
         for ex in ds:
@@ -197,6 +219,19 @@ def main() -> None:
                     f.write(f"{lbl},{task},{bucket},{r['correct']},{r['total']},{r['accuracy']:.4f}\n")
 
     print(f"\nResults saved → {out_dir}")
+
+    # Guard against silently-empty evals: an all-zero results file looks like
+    # a (bad) result; fail the job loudly instead.
+    total_examples = sum(
+        r["total"]
+        for task_dict in all_results.values()
+        for bucket_dict in task_dict.values()
+        for r in bucket_dict.values()
+    )
+    if total_examples == 0:
+        print("ERROR: 0 examples were evaluated across all tasks/buckets — "
+              "results are empty. Check --dataset_path / network access.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

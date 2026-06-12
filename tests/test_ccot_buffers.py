@@ -14,9 +14,12 @@ Two buffers, different scopes:
              as m_cross_in.  Resets at document (EOS) boundaries.
 
 Tests are grouped:
-  1. m_iter — internal, iteration-scoped short-term memory
-  2. m_cross — external, call-scoped long-term memory
-  3. Interactions — independence, TBPTT gradient scoping, per-sequence isolation
+  1. m_iter — internal, iteration-scoped short-term memory (per-position)
+  2. m_cross — external, call-scoped long-term memory (LM2 K-slot buffer)
+  3. DirectCCoT — Coconut-style K=0 carry (cortex mode without LM2 buffer)
+  4. EOS handling — per-lane document boundaries (read mask / suffix pooling /
+     gated-update reset) applied inside forward() via eos_mask
+  5. Interactions — independence, TBPTT gradient scoping, per-sequence isolation
 """
 from __future__ import annotations
 
@@ -29,7 +32,7 @@ import torch.nn as nn
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from model import CortexGPT, CortexConfig, LSTMBuffer
+from model import CortexGPT, CortexConfig, LSTMBuffer, DirectCCoT
 
 
 # ---------------------------------------------------------------------------
@@ -88,6 +91,7 @@ def _make_model(
     memory_slots: int = 0,
     memory_slots_iter: int = 0,
     hidden_size: int = H,
+    ccot_direct: bool = False,
 ) -> CortexGPT:
     base = _make_base(hidden_size)
     cfg  = CortexConfig(
@@ -96,6 +100,7 @@ def _make_model(
         mean_recurrence=4,
         memory_slots=memory_slots,
         memory_slots_iter=memory_slots_iter,
+        ccot_direct=ccot_direct,
     )
     return CortexGPT(base, cfg)
 
@@ -104,6 +109,12 @@ def _activate_read(buf: LSTMBuffer, std: float = 0.05) -> None:
     """Make the buffer read non-trivially by giving out_proj non-zero weights."""
     with torch.no_grad():
         nn.init.normal_(buf.out_proj.weight, std=std)
+
+
+def _activate_direct(d: DirectCCoT, std: float = 0.05) -> None:
+    """Make the direct-carry injection non-trivial (in_proj is zero-init)."""
+    with torch.no_grad():
+        nn.init.normal_(d.in_proj.weight, std=std)
 
 
 def _ids(b: int = B, s: int = S) -> torch.Tensor:
@@ -240,6 +251,40 @@ class TestMIter:
         # Write without no_grad context — gates are learnable → output requires grad
         new_buf = model.m_iter.write(h, buf)
         assert new_buf.requires_grad
+
+    def test_iter_buf_is_per_position(self):
+        """M_iter keeps one K-slot buffer per token position ([B*S, K, D])."""
+        model = _make_model(memory_slots_iter=K)
+        h     = torch.randn(B, S, H)
+
+        iter_buf = model._new_iter_buf(h)
+        assert iter_buf.shape == (B * S, K, H)
+
+        iter_buf = model._iter_write(h, iter_buf)
+        assert iter_buf.shape == (B * S, K, H)
+
+    def test_m_iter_is_causal(self):
+        """Perturbing a future token must not change logits at earlier positions.
+
+        Regression test: the old sequence-pooled write mixed h_T from ALL
+        positions into one shared buffer, so position i < j received
+        information about token j on the next loop iteration.
+        """
+        model = _make_model(memory_slots_iter=K)
+        _activate_read(model.m_iter)
+
+        ids_a = _ids(b=1)
+        ids_b = ids_a.clone()
+        ids_b[0, -1] = (ids_b[0, -1] + 1) % 200   # change only the LAST token
+
+        torch.manual_seed(11)   # identical RNG → identical h₀ draw
+        out_a = model(ids_a, num_steps=torch.tensor([0, 3]))
+        torch.manual_seed(11)
+        out_b = model(ids_b, num_steps=torch.tensor([0, 3]))
+
+        assert torch.allclose(
+            out_a["logits"][0, :-1], out_b["logits"][0, :-1], atol=1e-5
+        ), "M_iter leaks future-token information into earlier positions"
 
 
 # ---------------------------------------------------------------------------
@@ -386,7 +431,233 @@ class TestMCross:
 
 
 # ---------------------------------------------------------------------------
-# 3. Interactions — isolation, TBPTT, per-sequence, independence
+# 3. DirectCCoT — Coconut-style K=0 carry (cortex mode without LM2 buffer)
+# ---------------------------------------------------------------------------
+
+class TestDirectCCoT:
+
+    def test_disabled_by_default(self):
+        model = _make_model()
+        assert model.ccot_direct is None
+        assert not model.has_cross_state
+
+    def test_enabled_at_k0(self):
+        model = _make_model(ccot_direct=True)
+        assert model.ccot_direct is not None
+        assert model.m_cross is None
+        assert model.has_cross_state
+
+    def test_lm2_takes_precedence_at_k_positive(self):
+        """With memory_slots > 0 the LM2 buffer is used, not the direct carry."""
+        model = _make_model(memory_slots=K, ccot_direct=True)
+        assert model.ccot_direct is None
+        assert model.m_cross is not None
+
+    def test_write_shape(self):
+        """Direct carry occupies the m_cross slot with a [B, 1, D] state."""
+        model = _make_model(ccot_direct=True)
+        out   = model(_ids(), num_steps=torch.tensor([0, 1]), return_m_cross=True)
+        assert out["m_cross"] is not None
+        assert out["m_cross"].shape == (B, 1, H)
+
+    def test_injection_noop_at_init(self):
+        """in_proj is zero-init — carrying state changes nothing at step 0."""
+        model = _make_model(ccot_direct=True)
+        ids   = _ids()
+        state = torch.randn(B, 1, H)
+
+        torch.manual_seed(5)
+        out_none  = model(ids, num_steps=torch.tensor([0, 2]))
+        torch.manual_seed(5)
+        out_state = model(ids, num_steps=torch.tensor([0, 2]), m_cross_in=state)
+
+        assert torch.allclose(out_none["logits"], out_state["logits"])
+
+    def test_carry_changes_next_call(self):
+        """After activating in_proj, the carried state affects the next call."""
+        model = _make_model(ccot_direct=True)
+        _activate_direct(model.ccot_direct)
+        ids = _ids()
+
+        out1 = model(ids, num_steps=torch.tensor([0, 2]), return_m_cross=True)
+        mc   = out1["m_cross"].detach()
+
+        torch.manual_seed(3)
+        out2a = model(ids, num_steps=torch.tensor([0, 2]), m_cross_in=mc)
+        torch.manual_seed(3)
+        out2b = model(ids, num_steps=torch.tensor([0, 2]), m_cross_in=None)
+
+        assert not torch.allclose(out2a["logits"], out2b["logits"]), (
+            "Direct CCoT carry has no effect — K=0 cortex would be identical "
+            "to the parcae baseline"
+        )
+
+    def test_write_path_receives_gradients_via_chain(self):
+        """state_proj trains through the 2-segment un-detached chain
+        (same mechanism as the LM2 buffer's segment chain in train.py)."""
+        model  = _make_model(ccot_direct=True)
+        _activate_direct(model.ccot_direct)
+        ids    = _ids()
+        labels = _labels()
+
+        out1 = model(ids, num_steps=torch.tensor([0, 2]), return_m_cross=True)
+        out2 = model(ids, labels=labels, num_steps=torch.tensor([0, 2]),
+                     m_cross_in=out1["m_cross"])   # no detach
+        out2["loss"].backward()
+
+        g = model.ccot_direct.state_proj.weight.grad
+        assert g is not None and g.norm() > 0, (
+            "Direct CCoT state_proj got no gradient through the segment chain"
+        )
+
+
+# ---------------------------------------------------------------------------
+# 4. EOS-aware document handling (model #14)
+# ---------------------------------------------------------------------------
+
+class TestEOSHandling:
+    """The model applies per-lane document boundaries from eos_mask:
+    suffix-only write pooling, gated-update reset, and read masking —
+    replacing the train loop's old any-EOS full zeroing."""
+
+    E = 7   # EOS position used in most tests (S=16: prefix 0..7, suffix 8..15)
+
+    def test_no_eos_mask_is_noop(self):
+        """eos_mask=None and an all-False eos_mask are identical."""
+        model = _make_model(memory_slots=K)
+        ids   = _ids()
+        no_eos = torch.zeros(B, S, dtype=torch.bool)
+
+        torch.manual_seed(2)
+        out_a = model(ids, num_steps=torch.tensor([0, 2]), return_m_cross=True)
+        torch.manual_seed(2)
+        out_b = model(ids, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                      eos_mask=no_eos)
+
+        assert torch.allclose(out_a["logits"], out_b["logits"])
+        assert torch.allclose(out_a["m_cross"], out_b["m_cross"])
+
+    def test_write_pools_only_open_suffix(self):
+        """With an EOS mid-segment, the written state depends only on the
+        still-open document's suffix — not on the ended document's prefix."""
+        model = _make_model(memory_slots=K)
+        e     = self.E
+        eos   = torch.zeros(1, S, dtype=torch.bool)
+        eos[0, e] = True
+
+        ids_a = _ids(b=1)
+        ids_b = ids_a.clone()
+        ids_b[0, :e + 1] = (ids_b[0, :e + 1] + 17) % 200   # different prefix
+
+        torch.manual_seed(4)
+        mc_a = model(ids_a, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                     eos_mask=eos)["m_cross"]
+        torch.manual_seed(4)
+        mc_b = model(ids_b, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                     eos_mask=eos)["m_cross"]
+        assert torch.allclose(mc_a, mc_b, atol=1e-5), (
+            "Write depends on the ended document's prefix despite the EOS"
+        )
+
+        # Sanity: without eos_mask the prefix IS pooled and the writes differ.
+        torch.manual_seed(4)
+        mc_a2 = model(ids_a, num_steps=torch.tensor([0, 2]), return_m_cross=True)["m_cross"]
+        torch.manual_seed(4)
+        mc_b2 = model(ids_b, num_steps=torch.tensor([0, 2]), return_m_cross=True)["m_cross"]
+        assert not torch.allclose(mc_a2, mc_b2)
+
+    def test_write_excludes_ended_documents_state(self):
+        """With an EOS in the segment, the incoming buffer (the ended doc's
+        state) must not influence the gated write."""
+        model = _make_model(memory_slots=K)   # out_proj zero → reads inert
+        ids   = _ids(b=1)
+        eos   = torch.zeros(1, S, dtype=torch.bool)
+        eos[0, self.E] = True
+
+        buf_a = torch.randn(1, K, H)
+        buf_b = torch.zeros(1, K, H)
+
+        torch.manual_seed(6)
+        mc_a = model(ids, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                     m_cross_in=buf_a, eos_mask=eos)["m_cross"]
+        torch.manual_seed(6)
+        mc_b = model(ids, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                     m_cross_in=buf_b, eos_mask=eos)["m_cross"]
+        assert torch.allclose(mc_a, mc_b, atol=1e-5), (
+            "Ended document's buffer leaked into the gated write"
+        )
+
+        # Sanity: without an EOS the incoming buffer DOES shape the write.
+        torch.manual_seed(6)
+        mc_a2 = model(ids, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                      m_cross_in=buf_a)["m_cross"]
+        torch.manual_seed(6)
+        mc_b2 = model(ids, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                      m_cross_in=buf_b)["m_cross"]
+        assert not torch.allclose(mc_a2, mc_b2)
+
+    def test_write_zero_when_eos_is_last_token(self):
+        """EOS at the final position → no open document → carried state is 0."""
+        model = _make_model(memory_slots=K)
+        ids   = _ids(b=1)
+        eos   = torch.zeros(1, S, dtype=torch.bool)
+        eos[0, S - 1] = True
+
+        mc = model(ids, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                   eos_mask=eos)["m_cross"]
+        assert torch.allclose(mc, torch.zeros_like(mc)), (
+            "Empty open-document suffix must carry a zero state"
+        )
+
+    def test_read_masked_after_first_eos(self):
+        """Positions after the first EOS belong to fresh documents and must
+        not receive the carried state's injection."""
+        model = _make_model(memory_slots=K)
+        _activate_read(model.m_cross)
+        e    = self.E
+        ids  = _ids(b=1)
+        eos  = torch.zeros(1, S, dtype=torch.bool)
+        eos[0, e] = True
+        carried = torch.randn(1, K, H)
+
+        torch.manual_seed(8)
+        out_buf  = model(ids, num_steps=torch.tensor([0, 2]),
+                         m_cross_in=carried, eos_mask=eos)
+        torch.manual_seed(8)
+        out_none = model(ids, num_steps=torch.tensor([0, 2]),
+                         m_cross_in=None, eos_mask=eos)
+
+        # Continuing document (<= first EOS): carried state injected → differs
+        assert not torch.allclose(out_buf["logits"][0, :e + 1],
+                                  out_none["logits"][0, :e + 1])
+        # Fresh documents (> first EOS): no injection → identical
+        assert torch.allclose(out_buf["logits"][0, e + 1:],
+                              out_none["logits"][0, e + 1:], atol=1e-5), (
+            "Carried state leaked into documents that started inside the segment"
+        )
+
+    def test_direct_ccot_suffix_pooling(self):
+        """DirectCCoT's write obeys the same suffix-only pooling."""
+        model = _make_model(ccot_direct=True)
+        e     = self.E
+        eos   = torch.zeros(1, S, dtype=torch.bool)
+        eos[0, e] = True
+
+        ids_a = _ids(b=1)
+        ids_b = ids_a.clone()
+        ids_b[0, :e + 1] = (ids_b[0, :e + 1] + 29) % 200
+
+        torch.manual_seed(9)
+        mc_a = model(ids_a, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                     eos_mask=eos)["m_cross"]
+        torch.manual_seed(9)
+        mc_b = model(ids_b, num_steps=torch.tensor([0, 2]), return_m_cross=True,
+                     eos_mask=eos)["m_cross"]
+        assert torch.allclose(mc_a, mc_b, atol=1e-5)
+
+
+# ---------------------------------------------------------------------------
+# 5. Interactions — isolation, TBPTT, per-sequence, independence
 # ---------------------------------------------------------------------------
 
 class TestCCoTInteractions:

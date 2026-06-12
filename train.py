@@ -13,6 +13,8 @@ Key features
   - Per-sequence depth sampling (each sequence gets own T) (Parcae §4.2)
   - µbwd = ⌈µrec/2⌉ enforced and tracked through curriculum (Parcae App. I)
   - Recurrence depth curriculum: linear ramp 1 → mean_recurrence (McLeish §4.2)
+  - Cross-chunk M_cross chain: n_chunks consecutive chunks per sample, buffer
+    carried un-detached between them so the write path trains   (train #15)
   - Skip-nonfinite-grads: bad batches log and skip, don't corrupt opt state
   - Optional two-phase training: phase 1 on Pile, phase 2 on a second dataset
   - WandB logging, periodic checkpoint save/resume
@@ -47,6 +49,24 @@ Changes from v1
   [train #11] Parcae Algorithm 4 sampler (sample T, derive n/k — no truncation)
   [train #13] Two-phase training: phase2_start_tokens triggers dataset switch
   [train #14] µbwd = ⌈µrec/2⌉ enforced; tracks curriculum automatically
+  [train #15] Cross-chunk M_cross chain: each sample is n_chunks consecutive
+              seq_len chunks of the same stream, processed sequentially in one
+              micro-batch.  Segment g+1 reads the buffer written by segment g
+              WITHOUT detaching, so the write path (LSTM gates, candidate MLP,
+              h_T_proj) sits on the loss path and actually trains.  Replaces
+              the old cross-micro-batch carry, which detached every step (write
+              path got zero gradient for the entire run) and was misaligned
+              (batch lane i of the next micro-batch is not the stream
+              continuation of lane i).  n_chunks >= 3 is required to train the
+              memory-feedback gates (gate_proj_mem / forget_bias): the first
+              write always sees a zero buffer, so those terms only get
+              gradient from a write-of-a-write that is subsequently read.
+              Auto default is 4 when memory_slots > 0.
+  [train #16] EOS handling moved into the model (model #14): forward() takes
+              the segment's eos_mask and applies per-lane document boundaries
+              (suffix-only write pooling, gated-update reset, read masking)
+              instead of the train loop zeroing the whole buffer on any EOS —
+              which left the carried state ~always zero on packed Pile data.
 """
 from __future__ import annotations
 
@@ -345,10 +365,15 @@ def parse_args() -> argparse.Namespace:
                    help=(
                        "cortex          — (default) from scratch, scalable_init=True, h0=TruncNormal, "
                        "prelude_norm=True. Full Cortex architecture with Parcae training recipe. "
+                       "With memory_slots > 0 uses the LM2 K-slot buffer; with memory_slots == 0 "
+                       "uses the direct CCoT carry (pooled h_T added at the start of the loop "
+                       "block, Coconut-style) so K=0 Cortex differs from the Parcae baseline. "
                        "parcae          — from scratch, same init as cortex. Pure Parcae baseline "
-                       "(no Cortex-specific components); useful for ablations. "
-                       "vanilla         — from scratch, no prelude_norm. Standard transformer baseline; "
-                       "use with --mean_recurrence 1 --curriculum_steps 0. "
+                       "(no CCoT carry of any kind); useful for ablations. "
+                       "vanilla         — from scratch, no prelude_norm. Recurrent-arch-at-T=1 baseline "
+                       "(NOT true Pythia — still has LTI injection and random h0; for a true "
+                       "transformer baseline eval the public EleutherAI checkpoints). "
+                       "Use with --mean_recurrence 1 --curriculum_steps 0. "
                        "retrofit        — Pythia weights, scalable_init=False, h0=z0, prelude_norm=False, "
                        "McLeish layer surgery. Diagnostic only; not expected to converge at <100B tokens. "
                        "cortex_retrofit — Pythia weights + McLeish surgery, then Parcae+Cortex training: "
@@ -389,6 +414,16 @@ def parse_args() -> argparse.Namespace:
                    help="Effective batch size in tokens across all GPUs + grad accum")
     p.add_argument("--micro_batch_size",     type=int,   default=4,
                    help="Per-GPU per-step sequences")
+    p.add_argument("--cross_chunks",         type=int,   default=0,
+                   help="Consecutive seq_len chunks per sample, processed "
+                        "sequentially with M_cross carried (un-detached) between "
+                        "them so the buffer write path receives gradients. "
+                        "0 = auto: 4 if memory_slots > 0, else 1. Minimum 2 "
+                        "trains the write path; >= 3 is needed to also train "
+                        "the memory-feedback gates (the first write sees a "
+                        "zero buffer, so its forget-gate gradient is zero). "
+                        "Activation memory grows ~linearly; lower "
+                        "micro_batch_size if OOM.")
 
     # Infrastructure
     p.add_argument("--out_dir",              default="runs/cortex-160m")
@@ -509,19 +544,26 @@ def train(args: argparse.Namespace) -> None:
     if main:
         print(f"Loading {args.model_name} ...")
     _mode_cfg = {
-        # (from_scratch, scalable_init, h0_init, prelude_norm, retrofit_surgery)
+        # (from_scratch, scalable_init, h0_init, prelude_norm, retrofit_surgery, ccot_direct)
         # cortex/parcae: from-scratch with Parcae recipe (scalable_init + prelude_norm).
+        # ccot_direct only takes effect when memory_slots == 0: Cortex K=0 then
+        # carries a pooled h_T projection added directly at the start of the
+        # loop block (Coconut-style), so it is NOT identical to the Parcae
+        # baseline.  With memory_slots > 0 the LM2 buffer takes precedence.
         # retrofit modes: pretrained weights + McLeish surgery; prelude_norm=False for
         # plain retrofit (disrupts pretrained dist), True for cortex_retrofit which
         # pairs surgery with the full Parcae stability stack.
-        "cortex":          (True,  True,  "random", True,  False),
-        "parcae":          (True,  True,  "random", True,  False),
-        # vanilla: standard transformer baseline — use with --mean_recurrence 1 --curriculum_steps 0
-        "vanilla":         (True,  True,  "random", False, False),
-        "retrofit":        (False, False, "z0",     False, True),
-        "cortex_retrofit": (False, False, "z0",     True,  True),
+        "cortex":          (True,  True,  "random", True,  False, True),
+        "parcae":          (True,  True,  "random", True,  False, False),
+        # vanilla: recurrent-arch-at-T=1 baseline (still has LTI + random h0) —
+        # use with --mean_recurrence 1 --curriculum_steps 0.  NOT a true Pythia
+        # baseline; for that, eval the public EleutherAI checkpoints directly.
+        "vanilla":         (True,  True,  "random", False, False, False),
+        "retrofit":        (False, False, "z0",     False, True,  False),
+        "cortex_retrofit": (False, False, "z0",     True,  True,  True),
     }
-    _from_scratch, _scalable_init, _h0_init, _prelude_norm, _retrofit_surgery = _mode_cfg[args.training_mode]
+    (_from_scratch, _scalable_init, _h0_init, _prelude_norm,
+     _retrofit_surgery, _ccot_direct) = _mode_cfg[args.training_mode]
 
     model, cfg = build_cortex_gpt(
         model_name        = args.model_name,
@@ -534,12 +576,37 @@ def train(args: argparse.Namespace) -> None:
         h0_init           = _h0_init,
         prelude_norm      = _prelude_norm,
         retrofit_surgery  = _retrofit_surgery,
+        ccot_direct       = _ccot_direct,
     )
     cfg.mean_recurrence = args.mean_recurrence
     # µbwd = ⌈µrec/2⌉ enforced at init (Parcae App. I)
     cfg.mean_backprop_depth = enforce_mu_bwd(args.mean_recurrence)
 
     model = model.to(device=device, dtype=weight_dtype)
+
+    # ── Cross-chunk segmenting (M_cross gradient path) ──────────────────────
+    # The buffer write path only receives gradients when a LATER forward reads
+    # the un-detached buffer inside the same backward.  Each sample therefore
+    # spans n_chunks consecutive seq_len chunks, processed sequentially per
+    # micro-batch with M_cross carried between them.  K=0 models use 1 chunk,
+    # which is byte-identical to the previous single-chunk behaviour.
+    has_cross_state = model.has_cross_state   # LM2 buffer OR direct K=0 carry
+    n_chunks = args.cross_chunks
+    if n_chunks <= 0:
+        n_chunks = 4 if has_cross_state else 1
+    if has_cross_state and n_chunks < 2:
+        raise ValueError(
+            "--cross_chunks must be >= 2 when the model carries cross-segment "
+            "state (memory_slots > 0 or cortex K=0 direct carry): with a "
+            "single chunk per sample the write path never receives gradients "
+            "(its output would only be read by a later, detached micro-batch)."
+        )
+    if args.memory_slots > 0 and n_chunks == 2 and main:
+        print("WARNING: --cross_chunks 2 trains the M_cross write path, but the "
+              "memory-feedback parameters (gate_proj_mem, forget_bias) receive "
+              "exactly-zero gradients: the only write that gets read sees a "
+              "zero incoming buffer. Use --cross_chunks >= 3 to train the "
+              "forget gate.")
 
     if world_size > 1:
         model = DDP(model, device_ids=[device], find_unused_parameters=False,
@@ -568,8 +635,18 @@ def train(args: argparse.Namespace) -> None:
     tokens_per_seq   = args.seq_len
     seqs_per_step    = args.batch_size // tokens_per_seq
     micro_seqs       = args.micro_batch_size
-    grad_accum_steps = max(1, seqs_per_step // (micro_seqs * world_size))
+    # Each micro-batch forward/backward covers micro_seqs samples x n_chunks
+    # seq_len chunks, i.e. micro_seqs * n_chunks "sequences" of the budget.
+    grad_accum_steps = max(1, seqs_per_step // (micro_seqs * n_chunks * world_size))
     max_steps        = args.max_tokens // args.batch_size
+
+    seqs_per_micro = micro_seqs * n_chunks * world_size
+    if main and seqs_per_step % seqs_per_micro != 0:
+        eff_tokens = grad_accum_steps * seqs_per_micro * tokens_per_seq
+        print(f"WARNING: seqs/step ({seqs_per_step}) is not divisible by "
+              f"micro_batch_size*cross_chunks*world_size ({seqs_per_micro}); "
+              f"effective tokens/step = {eff_tokens} != batch_size = "
+              f"{args.batch_size}. Adjust micro_batch_size or batch_size.")
 
     warmup_steps   = max(1, int(max_steps * args.warmup_ratio))
     cooldown_steps = max(1, int(max_steps * args.cooldown_ratio))
@@ -577,7 +654,8 @@ def train(args: argparse.Namespace) -> None:
     if main:
         print(f"Effective batch: {args.batch_size} tokens = "
               f"{seqs_per_step} seqs x {tokens_per_seq} tok")
-        print(f"Grad accum: {grad_accum_steps} | World size: {world_size}")
+        print(f"Grad accum: {grad_accum_steps} | Cross-chunks: {n_chunks} | "
+              f"World size: {world_size}")
         print(f"Max steps: {max_steps:,} | Warmup: {warmup_steps} | Cooldown: {cooldown_steps}")
         if args.curriculum_steps > 0:
             print(f"Curriculum: mu_rec ramps 1->{args.mean_recurrence} over {args.curriculum_steps} steps")
@@ -595,9 +673,13 @@ def train(args: argparse.Namespace) -> None:
     tokenizer = load_tokenizer(args.model_name)
 
     def _make_loader(dataset_name: str, text_column: str = "text"):
+        # Each sample is n_chunks consecutive seq_len chunks of one stream;
+        # the packed loader naturally yields contiguous token windows, so a
+        # single (n_chunks * seq_len)-token sample is split into aligned
+        # segments by the training loop below.
         return build_dataloader(
             tokenizer    = tokenizer,
-            seq_len      = args.seq_len,
+            seq_len      = args.seq_len * n_chunks,
             batch_size   = args.micro_batch_size,
             num_workers  = args.num_data_workers,
             seed         = args.seed + rank * 1000,
@@ -659,7 +741,6 @@ def train(args: argparse.Namespace) -> None:
     accum_count = 0
     loss_accum  = 0.0
     step_t0     = time.monotonic()
-    m_cross: Optional[torch.Tensor] = None
 
     # Momentum warmup tracking
     momentum_warmup_start = 0.85
@@ -688,7 +769,7 @@ def train(args: argparse.Namespace) -> None:
 
         input_ids = batch["input_ids"].to(device, non_blocking=True)
         labels    = batch["labels"].to(device, non_blocking=True)
-        eos_mask  = batch["eos_mask"].to(device, non_blocking=True)  # [B, S] bool
+        eos_mask  = batch["eos_mask"].to(device, non_blocking=True)  # [B, n_chunks*S] bool
 
         B = input_ids.shape[0]
 
@@ -700,7 +781,7 @@ def train(args: argparse.Namespace) -> None:
 
         # ── Sample recurrence depths ─────────────────────────────────────────
         unwrapped  = model.module if isinstance(model, DDP) else model
-        has_buffer = (unwrapped.m_cross is not None)
+        has_buffer = unwrapped.has_cross_state   # LM2 buffer or direct K=0 carry
         if unwrapped.config.per_sequence_sampling:
             # Parcae §4.2: each sequence in the batch gets its own T
             per_seq = sample_batch_steps(step, B, current_mu_rec, current_mu_bwd)
@@ -718,30 +799,39 @@ def train(args: argparse.Namespace) -> None:
         ctx = (model.no_sync() if isinstance(model, DDP) and is_accumulating
                else nullcontext())
 
+        # ── Cross-chunk segment chain ────────────────────────────────────────
+        # Split each (n_chunks * seq_len) sample into aligned consecutive
+        # segments.  M_cross written by segment g is read by segment g+1
+        # WITHOUT detaching, so gradients reach the buffer write path through
+        # the next segment's read.  Buffer state never crosses micro-batches.
+        # Document boundaries are handled inside the model via eos_mask:
+        # the write pools only the still-open document's suffix, the ended
+        # document's state is excluded from the gated update, and reads are
+        # masked to the continuing document's positions — so the carried
+        # state is document-correct instead of being zeroed on any EOS.
+        S = args.seq_len
         with ctx:
-            out = model(
-                input_ids      = input_ids,
-                labels         = labels,
-                num_steps      = num_steps_arg,
-                m_cross_in     = m_cross,
-                return_m_cross = has_buffer,
-            )
-            loss = out["loss"] / grad_accum_steps
-            loss.backward()
+            m_c: Optional[torch.Tensor] = None
+            seg_losses = []
+            for g in range(n_chunks):
+                sl  = slice(g * S, (g + 1) * S)
+                out = model(
+                    input_ids      = input_ids[:, sl],
+                    labels         = labels[:, sl],
+                    eos_mask       = eos_mask[:, sl] if has_buffer else None,
+                    num_steps      = num_steps_arg,
+                    m_cross_in     = m_c,
+                    return_m_cross = has_buffer and (g + 1) < n_chunks,
+                )
+                seg_losses.append(out["loss"])
 
-        # Carry m_cross within the gradient-accumulation window so consecutive
-        # micro-batches share the buffer state.  Sequences that ended a document
-        # this micro-batch get their buffer zeroed before the next micro-batch.
-        if has_buffer:
-            new_mc = out.get("m_cross")
-            if new_mc is not None:
-                new_mc = new_mc.detach()
-                doc_ended = eos_mask.any(dim=1)          # [B] — any EOS in this chunk?
-                if doc_ended.any():
-                    new_mc = new_mc * (~doc_ended).view(-1, 1, 1).to(dtype=new_mc.dtype)
-                m_cross = new_mc
+                if has_buffer and (g + 1) < n_chunks:
+                    m_c = out["m_cross"]   # document-correct, kept in the graph
 
-        loss_accum  += out["loss"].detach().item()
+            micro_loss = torch.stack(seg_losses).mean()
+            (micro_loss / grad_accum_steps).backward()
+
+        loss_accum  += micro_loss.detach().item()
         total_tokens += input_ids.numel() * world_size
         accum_count  += 1
 
@@ -777,7 +867,6 @@ def train(args: argparse.Namespace) -> None:
                 optimizer.zero_grad(set_to_none=True)
                 accum_count = 0
                 loss_accum  = 0.0
-                m_cross     = None
                 continue
 
             optimizer.step()
@@ -785,7 +874,6 @@ def train(args: argparse.Namespace) -> None:
 
             step        += 1
             accum_count  = 0
-            m_cross      = None   # reset buffer at each optimizer step boundary
 
             # ── Logging ───────────────────────────────────────────────────────
             if step % args.log_interval == 0 and main:

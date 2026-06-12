@@ -36,12 +36,7 @@ declare -A CKPTS=(
     ["pythia-5b"]="$PYTHIA_CKPT"
     ["parcae-5b"]="$PARCAE_CKPT"
 )
-declare -A MEM_SLOTS=(
-    ["cortex-5b"]=0
-    ["cortex-5b-k4"]=4
-    ["pythia-5b"]=0
-    ["parcae-5b"]=0
-)
+# memory_slots is read from each checkpoint's saved config by the eval CLIs.
 declare -A T_FLAG=(
     ["cortex-5b"]=""
     ["cortex-5b-k4"]=""
@@ -59,7 +54,6 @@ for MODEL in "${MODELS[@]}"; do
     echo "[$MODEL]"
     python evals/eval_babilong.py \
         --checkpoint "${CKPTS[$MODEL]}" \
-        --memory_slots "${MEM_SLOTS[$MODEL]}" \
         ${T_FLAG[$MODEL]} \
         --tasks qa1 qa2 qa3 \
         --dataset_path "$BABILONG_PATH" \
@@ -74,7 +68,6 @@ for MODEL in "${MODELS[@]}"; do
     echo "[$MODEL]"
     python evals/eval_longmemeval.py \
         --checkpoint "${CKPTS[$MODEL]}" \
-        --memory_slots "${MEM_SLOTS[$MODEL]}" \
         ${T_FLAG[$MODEL]} \
         --dataset_path "$LONGMEMEVAL_PATH" \
         --out_dir "$RESULTS_DIR/longmemeval/$MODEL"

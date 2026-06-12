@@ -248,18 +248,33 @@ class TestLSTMBuffer:
         assert buf.gate_proj_mem.out_features == H * 2
 
     def test_candidate_mlp_active(self):
-        """MLP refinement changes candidate vs. raw cand_proj output."""
+        """MLP refinement (LM2 attend_over_memory) is on the candidate path:
+        zeroing cand_mlp2 changes the written buffer."""
         torch.manual_seed(1)
         buf    = self._buf()
         h_T    = torch.randn(B, S, H)
         buffer = torch.randn(B, K, H)
         with torch.no_grad():
-            h_pool    = h_T.mean(dim=1)
-            cand_raw  = buf.cand_proj(h_pool).view(B, K, H)
-            # Run full write and compare to raw projection
-            out       = buf.write(h_T, buffer)
-        # The written content differs from raw cand_proj because of MLP+LN
-        assert not torch.allclose(out, torch.tanh(cand_raw))
+            out_full = buf.write(h_T, buffer)
+            buf.cand_mlp2.weight.zero_()
+            buf.cand_mlp2.bias.zero_()
+            out_nomlp = buf.write(h_T, buffer)
+        assert not torch.allclose(out_full, out_nomlp), \
+            "Zeroing cand_mlp2 left the write unchanged — MLP refinement inactive"
+
+    def test_slot_candidates_distinct_at_first_write(self):
+        """Each slot queries the sequence itself (slot-query cross-attention),
+        so the K slots receive distinct updates even from an all-zero buffer.
+        Slot specialization is required by framework §4.4 (K=4 must beat K=1) —
+        impossible if every slot gets the same broadcast pooled candidate."""
+        torch.manual_seed(0)
+        buf     = self._buf()
+        h_T     = torch.randn(B, S, H)
+        new_buf = buf.write(h_T, torch.zeros(B, K, H))
+        for i in range(K):
+            for j in range(i + 1, K):
+                assert not torch.allclose(new_buf[:, i], new_buf[:, j], atol=1e-5), \
+                    f"slots {i} and {j} received identical updates — slot collapse"
 
     def test_tanh_on_buffer_before_gate(self):
         """gate_proj_mem receives tanh(buffer), not raw buffer (LM2 line 281)."""
@@ -358,13 +373,23 @@ class TestCortexGPT:
         assert model.ln_prelude is None
 
     def test_init_state_distribution(self):
-        """h₀ = z0.detach().clone() for retrofitting: same values, no grad."""
-        model, _ = _make_cortex()
+        """Default h0_init="random": h₀ ~ TruncNormal(0, 1/√D), independent of
+        z0 (Parcae §4.1).  Retrofit "z0" mode clones the prelude output."""
+        model, cfg = _make_cortex()
+        assert cfg.h0_init == "random"
         z0 = torch.randn(4, 128, H, requires_grad=True)
         h  = model._init_state(z0)
         assert h.shape == z0.shape
-        assert torch.allclose(h, z0.detach())
         assert not h.requires_grad
+        std = 1.0 / math.sqrt(H)
+        assert h.abs().max().item() <= 3 * std + 1e-6, "values exceed truncation bound"
+        assert h.std().item() == pytest.approx(std, rel=0.15)
+        assert not torch.allclose(h, z0.detach()), "random h₀ should not copy z0"
+
+        model.config.h0_init = "z0"
+        h_z0 = model._init_state(z0)
+        assert torch.allclose(h_z0, z0.detach())
+        assert not h_z0.requires_grad
 
     def test_forward_output_shapes(self):
         model, _ = _make_cortex()
@@ -730,3 +755,38 @@ class TestInteractions:
         model = CortexGPT(base, cfg)
         assert model.h_T_proj is None, \
             "h_T_proj module should not be created when h_T_proj=False"
+
+    def test_h_T_proj_not_in_muon(self):
+        """h_T_proj is identity-init (like Parcae's C matrix): it must carry
+        _no_weight_decay so Muon routes it to the Adam fallback — Newton-Schulz
+        would orthogonalise away the identity init, and weight decay would pull
+        it toward zero."""
+        model, _ = _make_cortex(memory_slots=K)
+        p = model.h_T_proj.weight
+        assert getattr(p, "_no_weight_decay", False), \
+            "h_T_proj.weight missing _no_weight_decay flag"
+        assert not Muon._use_muon(p), \
+            "h_T_proj.weight is being routed through Newton-Schulz"
+
+    def test_slot_emb_not_in_muon(self):
+        """slot_emb is embedding-like: bypasses Newton-Schulz and weight decay."""
+        model, _ = _make_cortex(memory_slots=K)
+        p = model.m_cross.slot_emb
+        assert getattr(p, "_no_weight_decay", False), \
+            "slot_emb missing _no_weight_decay flag"
+        assert not Muon._use_muon(p), \
+            "slot_emb is being routed through Newton-Schulz"
+
+    def test_ccot_state_proj_not_in_muon(self):
+        """DirectCCoT.state_proj is identity-init: Adam fallback, no decay.
+        in_proj stays in Muon (regular learned projection, zero-init like the
+        LSTMBuffer's out_proj)."""
+        base = _make_fake_base(H, 4)
+        cfg  = CortexConfig(n_pre=1, n_loop=2, n_coda=1, hidden_size=H,
+                            memory_slots=0, ccot_direct=True)
+        model = CortexGPT(base, cfg)
+        assert model.ccot_direct is not None
+        assert not Muon._use_muon(model.ccot_direct.state_proj.weight), \
+            "state_proj is being routed through Newton-Schulz"
+        assert Muon._use_muon(model.ccot_direct.in_proj.weight), \
+            "in_proj should remain a Muon param"

@@ -36,7 +36,8 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser("Multiple-choice evaluation for CortexGPT")
     p.add_argument("--checkpoint",   type=str, required=True)
     p.add_argument("--model_name",   default="EleutherAI/pythia-160m")
-    p.add_argument("--memory_slots", type=int, default=0)
+    p.add_argument("--memory_slots", type=int, default=None,
+                   help="Override K; default reads memory_slots from the checkpoint config")
     p.add_argument("--T",            type=int, default=None,
                    help="Recurrence depth at eval (None = use checkpoint mean_recurrence)")
     p.add_argument("--tasks",        nargs="+", default=TASK_CHOICES, choices=TASK_CHOICES)
