@@ -94,8 +94,7 @@ def load_hellaswag(max_examples: int):
 
 def load_winogrande(max_examples: int):
     from datasets import load_dataset
-    ds = load_dataset("allenai/winogrande", "winogrande_xl", split="validation",
-                      trust_remote_code=True)
+    ds = load_dataset("allenai/winogrande", "winogrande_xl", split="validation")
     if max_examples > 0:
         ds = ds.select(range(min(max_examples, len(ds))))
     examples = []
@@ -127,7 +126,12 @@ def load_arc(config: str, max_examples: int):
 
 def load_piqa(max_examples: int):
     from datasets import load_dataset
-    ds = load_dataset("piqa", split="validation")
+    # The canonical "piqa" repo ships a loading script (piqa.py), which datasets
+    # >= 4.x refuses to execute ("Dataset scripts are no longer supported").
+    # Load the auto-generated parquet conversion instead — same goal/sol1/sol2/
+    # label schema, no remote code.
+    ds = load_dataset("ybisk/piqa", "plain_text", split="validation",
+                      revision="refs/convert/parquet")
     if max_examples > 0:
         ds = ds.select(range(min(max_examples, len(ds))))
     return [(ex["goal"], [ex["sol1"], ex["sol2"]], int(ex["label"])) for ex in ds]
