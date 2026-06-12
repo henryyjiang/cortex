@@ -623,14 +623,33 @@ def train(args: argparse.Namespace) -> None:
     # ── WandB ───────────────────────────────────────────────────────────────
     if main and not args.wandb_disabled:
         import wandb
+        # Resume the *same* wandb run when continuing from a checkpoint.
+        #   - id=wandb_run_id reattaches to the run saved in the checkpoint
+        #     (None for a fresh run → wandb mints a new id).
+        #   - resume="allow" reattaches if the run exists, else starts a new
+        #     one. We deliberately avoid resume="must", which hard-crashes the
+        #     job if the run can't be reached (deleted run, offline/never-synced
+        #     run, wrong project, or an init timeout on a flaky node).
         wandb.init(
             project  = args.wandb_project,
             name     = out_dir.name,
+            id       = wandb_run_id,
+            resume   = "allow" if wandb_run_id else None,
             config   = vars(args),
             dir      = str(out_dir),
             settings = wandb.Settings(init_timeout=120),
         )
         wandb_run_id = wandb.run.id
+
+        # Use an explicit training-step metric as the x-axis instead of wandb's
+        # internal step counter. On resume the internal counter continues from
+        # the run's last logged step, so logging with an explicit step=<train
+        # step> would be non-monotonic (the checkpoint lags the last log) and
+        # wandb would silently drop those points. Logging `train/step` as data
+        # and letting wandb auto-increment its own step avoids that entirely.
+        wandb.define_metric("train/step")
+        wandb.define_metric("train/*", step_metric="train/step")
+        wandb.define_metric("lti/*",   step_metric="train/step")
 
     # ── Training state ───────────────────────────────────────────────────────
     model.train()
@@ -789,6 +808,7 @@ def train(args: argparse.Namespace) -> None:
                     import wandb
                     raw_model = model.module if isinstance(model, DDP) else model
                     wandb.log({
+                        "train/step":            step,
                         "train/loss":            avg_loss,
                         "train/ppl":             math.exp(avg_loss),
                         "train/lr":              lr_now,
@@ -804,7 +824,7 @@ def train(args: argparse.Namespace) -> None:
                         "train/phase":           2 if in_phase2 else 1,
                         "lti/spectral_norm":     raw_model.lti.spectral_norm(),
                         "lti/contraction_factor": raw_model.lti.contraction_factor(),
-                    }, step=step)
+                    })
 
                 loss_accum = 0.0
                 step_t0    = time.monotonic()
