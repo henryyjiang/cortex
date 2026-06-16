@@ -64,6 +64,20 @@ class CortexConfig:
     # Model identity
     base_model_name: str = "EleutherAI/pythia-160m"
 
+    # Architecture family — selects which model class is built/loaded:
+    #   "cortex" — CortexGPT (Pre/Loop/Coda + LTI; covers the cortex / parcae /
+    #              vanilla / retrofit training modes, which differ only by the
+    #              other config fields below).
+    #   "pythia" — PythiaVanilla: the *true* GPTNeoX transformer, no recurrence,
+    #              no LTI, no Pre/Loop/Coda split. The genuine non-recurrent
+    #              baseline (replaces the old recurrent-arch-at-T=1 "vanilla").
+    #   "ccot"   — PythiaCCoT: Coconut-style continuous chain-of-thought over the
+    #              FULL transformer — each pass runs the whole network and its
+    #              last hidden state is added directly to the next pass's input
+    #              embeddings.
+    # Saved in the checkpoint config so eval loaders build the matching class.
+    arch: str = "cortex"
+
     # Layer split — must sum to total Pythia layer count
     n_pre:  int = 3
     n_loop: int = 6
@@ -968,8 +982,285 @@ class CortexGPT(nn.Module):
 
 
 # ---------------------------------------------------------------------------
+# PythiaVanilla — the TRUE non-recurrent transformer baseline
+# ---------------------------------------------------------------------------
+
+class PythiaVanilla(nn.Module):
+    """
+    Unmodified GPTNeoX (Pythia) transformer — the genuine non-recurrent
+    baseline for the ablation.
+
+    No Pre/Loop/Coda split, no LTI injection, no recurrence: a single forward
+    pass through the standard Pythia stack.  This replaces the old `vanilla`
+    training mode, which ran the *recurrent* CortexGPT architecture at T=1 —
+    still with LTI injection and a random h0 — and was therefore not a real
+    transformer (model.py history / framework issue #6).
+
+    Accepts the same forward kwargs as CortexGPT (num_steps, m_cross_in,
+    return_m_cross, eos_mask) so it is a drop-in for the train loop and eval
+    harness, but ignores them: there is no recurrence and no cross-segment
+    state.  Loss is computed exactly like CortexGPT — NO internal label shift,
+    because the data pipeline already returns labels shifted by one (data.py).
+    """
+
+    def __init__(self, base_model, config: CortexConfig) -> None:
+        super().__init__()
+        self.config = config
+        self.base   = base_model          # GPTNeoXForCausalLM, unmodified
+        # Same Muon exclusion as CortexGPT: embedding tables go through the Adam
+        # fallback, not Newton-Schulz (which would orthogonalise the rows).
+        self.base.gpt_neox.embed_in.weight._no_weight_decay = True
+        self.base.embed_out.weight._no_weight_decay          = True
+
+    @property
+    def has_cross_state(self) -> bool:
+        return False
+
+    def forward(
+        self,
+        input_ids:      torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None,
+        position_ids:   Optional[torch.Tensor] = None,
+        labels:         Optional[torch.Tensor] = None,
+        num_steps:      Optional[Union[torch.Tensor, list]] = None,   # ignored
+        m_cross_in:     Optional[torch.Tensor] = None,                # ignored
+        return_m_cross: bool = False,
+        eos_mask:       Optional[torch.Tensor] = None,                # ignored
+    ) -> dict:
+        out    = self.base(input_ids=input_ids, attention_mask=attention_mask,
+                           use_cache=False)
+        logits = out.logits.float()
+
+        loss = ppl = None
+        if labels is not None:
+            loss = F.cross_entropy(
+                logits.reshape(-1, logits.shape[-1]), labels.reshape(-1),
+                ignore_index=-100,
+            )
+            ppl = loss.detach().exp()
+
+        res = {"loss": loss, "ppl": ppl, "logits": logits}
+        if return_m_cross:
+            res["m_cross"] = None
+        return res
+
+
+# ---------------------------------------------------------------------------
+# PythiaCCoT — Coconut-style continuous chain-of-thought over the FULL network
+# ---------------------------------------------------------------------------
+
+class PythiaCCoT(nn.Module):
+    """
+    Coconut-style continuous chain-of-thought applied to the WHOLE transformer
+    (Hao et al. 2024, "Training LLMs to Reason in a Continuous Latent Space").
+
+    Recurrence wraps the *entire* Pythia stack rather than an internal loop
+    block.  Each pass runs embed → all layers → final norm; the resulting last
+    hidden state is added DIRECTLY to the next pass's input embeddings:
+
+        carry = 0
+        for _ in range(T):                       # T = n no-grad + k grad passes
+            h     = final_norm(stack(embed(input_ids) + carry))
+            carry = h                             # raw, per-position last hidden state
+        logits = unembed(h)
+
+    Contrast with Cortex K=0 (DirectCCoT): there the carry is a *projected,
+    mean-pooled* h_T taken out of the Loop block only and re-injected at the
+    loop start across cross-chunk segments.  Here the carry is the raw,
+    per-position last hidden state of the full network, added to the token
+    embeddings of the next full pass — "normal" continuous CoT.  No LTI, no
+    projection, no gating: the hidden state is added directly.
+
+    Recurrence depth uses the same n-no-grad + k-grad TBPTT schedule as the
+    CortexGPT loop block (num_steps = Tensor([n, k]) per batch, or a
+    per-sequence list of (n_i, k_i)).  At T=1 the carry is zero, so the forward
+    reduces exactly to PythiaVanilla — a clean baseline-consistency check.
+    """
+
+    def __init__(self, base_model, config: CortexConfig) -> None:
+        super().__init__()
+        self.config = config
+        neox = base_model.gpt_neox
+        self.embed_in    = neox.embed_in
+        self.emb_dropout = neox.emb_dropout
+        self.layers      = neox.layers
+        self.final_norm  = neox.final_layer_norm
+        self.rotary_emb  = neox.rotary_emb
+        self.embed_out   = base_model.embed_out
+        # Same Muon exclusion as CortexGPT.
+        self.embed_in.weight._no_weight_decay  = True
+        self.embed_out.weight._no_weight_decay = True
+
+    @property
+    def has_cross_state(self) -> bool:
+        return False
+
+    # ── layer / mask helpers (mirror CortexGPT) ──────────────────────────────
+    def _layer_fwd(self, x, layer, attn_mask, pos_emb):
+        out = layer(x, attention_mask=attn_mask, position_embeddings=pos_emb)
+        return out[0] if isinstance(out, tuple) else out
+
+    def _build_attn_mask(self, attention_mask, seq_len, device):
+        causal = torch.tril(torch.ones(seq_len, seq_len, device=device, dtype=torch.bool))
+        mask4d = causal.unsqueeze(0).unsqueeze(0)
+        if attention_mask is not None and not attention_mask.all():
+            pad    = attention_mask.bool().unsqueeze(1).unsqueeze(2)
+            mask4d = mask4d & pad
+        return mask4d
+
+    def _stack(self, x, attn4d, pos_emb):
+        """One full pass through every transformer layer + final norm."""
+        for layer in self.layers:
+            x = self._layer_fwd(x, layer, attn4d, pos_emb)
+        return self.final_norm(x)
+
+    def _recur(self, emb, attn4d, pos_emb, n_nograd, k_grad):
+        """n no-grad passes (TBPTT cut) then k grad passes; carry added directly."""
+        carry = torch.zeros_like(emb)
+        with torch.no_grad():
+            for _ in range(n_nograd):
+                carry = self._stack(emb + carry, attn4d, pos_emb)
+        for _ in range(k_grad):
+            carry = self._stack(emb + carry, attn4d, pos_emb)
+        return carry
+
+    def forward(
+        self,
+        input_ids:      torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None,
+        position_ids:   Optional[torch.Tensor] = None,
+        labels:         Optional[torch.Tensor] = None,
+        num_steps:      Optional[Union[torch.Tensor, list]] = None,
+        m_cross_in:     Optional[torch.Tensor] = None,    # ignored (no cross state)
+        return_m_cross: bool = False,
+        eos_mask:       Optional[torch.Tensor] = None,    # ignored
+    ) -> dict:
+        B, S   = input_ids.shape
+        device = input_ids.device
+
+        # ── Parse num_steps → per_seq_steps: list[(n_i, k_i)] ───────────────
+        if num_steps is None:
+            per_seq_steps = [(0, self.config.mean_recurrence)] * B
+        elif isinstance(num_steps, list):
+            assert len(num_steps) == B
+            per_seq_steps = [(int(n), int(k)) for n, k in num_steps]
+        else:
+            per_seq_steps = [(int(num_steps[0]), int(num_steps[1]))] * B
+        use_per_seq = (self.config.per_sequence_sampling
+                       and len(set(per_seq_steps)) > 1)
+
+        if attention_mask is None:
+            attention_mask = input_ids.new_ones(B, S)
+        if position_ids is None:
+            position_ids = torch.arange(S, device=device).unsqueeze(0).expand(B, -1)
+
+        attn4d  = self._build_attn_mask(attention_mask, S, device)
+        emb     = self.emb_dropout(self.embed_in(input_ids))
+        pos_emb = self.rotary_emb(emb, position_ids)   # (cos, sin)
+
+        if use_per_seq:
+            # Each sequence gets its own depth (Parcae §4.2) — process per lane.
+            h_final  = torch.zeros_like(emb)
+            cos, sin = pos_emb
+            for i in range(B):
+                n_i, k_i = per_seq_steps[i]
+                attn_i = attn4d[i:i+1] if attn4d.shape[0] == B else attn4d
+                pos_i  = (cos[i:i+1] if cos.shape[0] == B else cos,
+                          sin[i:i+1] if sin.shape[0] == B else sin)
+                h_final[i:i+1] = self._recur(emb[i:i+1], attn_i, pos_i, n_i, k_i)
+        else:
+            n_nograd, k_grad = per_seq_steps[0]
+            h_final = self._recur(emb, attn4d, pos_emb, n_nograd, k_grad)
+
+        logits = self.embed_out(h_final).float()
+
+        loss = ppl = None
+        if labels is not None:
+            loss = F.cross_entropy(
+                logits.reshape(-1, logits.shape[-1]), labels.reshape(-1),
+                ignore_index=-100,
+            )
+            ppl = loss.detach().exp()
+
+        res = {"loss": loss, "ppl": ppl, "logits": logits}
+        if return_m_cross:
+            res["m_cross"] = None
+        return res
+
+
+# ---------------------------------------------------------------------------
 # Factory
 # ---------------------------------------------------------------------------
+
+def _build_base(model_name, from_scratch, trust_remote_code, torch_dtype, device_map):
+    """Build the underlying GPTNeoXForCausalLM (random init or pretrained)."""
+    from transformers import AutoModelForCausalLM, AutoConfig
+    if from_scratch:
+        cfg_hf = AutoConfig.from_pretrained(model_name, trust_remote_code=trust_remote_code)
+        return AutoModelForCausalLM.from_config(cfg_hf).to(dtype=torch_dtype)
+    return AutoModelForCausalLM.from_pretrained(
+        model_name, torch_dtype=torch_dtype, device_map=device_map,
+        trust_remote_code=trust_remote_code,
+    )
+
+
+def build_pythia(
+    model_name:        str         = "EleutherAI/pythia-160m",
+    from_scratch:      bool        = True,
+    trust_remote_code: bool        = False,
+    torch_dtype:       torch.dtype = torch.bfloat16,
+    device_map:        str         = "cpu",
+) -> tuple[PythiaVanilla, CortexConfig]:
+    """Build the true non-recurrent Pythia baseline (arch='pythia')."""
+    base        = _build_base(model_name, from_scratch, trust_remote_code,
+                              torch_dtype, device_map)
+    hidden_size = base.gpt_neox.embed_in.embedding_dim
+    split       = LAYER_SPLITS.get(model_name, (0, 0, 0))
+    cfg = CortexConfig(
+        base_model_name = model_name,
+        arch            = "pythia",
+        n_pre           = split[0],
+        n_loop          = split[1],
+        n_coda          = split[2],
+        hidden_size     = hidden_size,
+        memory_slots    = 0,
+        memory_slots_iter = 0,
+        scalable_init   = False,
+        prelude_norm    = False,
+        ccot_direct     = False,
+    )
+    model = PythiaVanilla(base, cfg).to(dtype=torch_dtype)
+    return model, cfg
+
+
+def build_pythia_ccot(
+    model_name:        str         = "EleutherAI/pythia-160m",
+    from_scratch:      bool        = True,
+    trust_remote_code: bool        = False,
+    torch_dtype:       torch.dtype = torch.bfloat16,
+    device_map:        str         = "cpu",
+) -> tuple[PythiaCCoT, CortexConfig]:
+    """Build the full-network Coconut-style continuous-CoT model (arch='ccot')."""
+    base        = _build_base(model_name, from_scratch, trust_remote_code,
+                              torch_dtype, device_map)
+    hidden_size = base.gpt_neox.embed_in.embedding_dim
+    split       = LAYER_SPLITS.get(model_name, (0, 0, 0))
+    cfg = CortexConfig(
+        base_model_name = model_name,
+        arch            = "ccot",
+        n_pre           = split[0],
+        n_loop          = split[1],
+        n_coda          = split[2],
+        hidden_size     = hidden_size,
+        memory_slots    = 0,
+        memory_slots_iter = 0,
+        scalable_init   = False,
+        prelude_norm    = False,
+        ccot_direct     = False,
+    )
+    model = PythiaCCoT(base, cfg).to(dtype=torch_dtype)
+    return model, cfg
+
 
 def build_cortex_gpt(
     model_name:         str          = "EleutherAI/pythia-160m",

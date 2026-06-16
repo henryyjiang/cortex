@@ -84,7 +84,10 @@ import torch.nn as nn
 from torch.nn.parallel import DistributedDataParallel as DDP
 from contextlib import nullcontext
 
-from model import CortexConfig, CortexGPT, LAYER_SPLITS, build_cortex_gpt
+from model import (
+    CortexConfig, CortexGPT, LAYER_SPLITS, build_cortex_gpt,
+    build_pythia, build_pythia_ccot,
+)
 from data import build_dataloader, load_tokenizer
 
 
@@ -361,7 +364,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--memory_slots",         type=int,   default=0)
     p.add_argument("--memory_slots_iter",    type=int,   default=0)
     p.add_argument("--training_mode",        default="cortex",
-                   choices=["cortex", "parcae", "vanilla", "retrofit", "cortex_retrofit"],
+                   choices=["cortex", "parcae", "vanilla", "pythia", "ccot",
+                            "retrofit", "cortex_retrofit"],
                    help=(
                        "cortex          — (default) from scratch, scalable_init=True, h0=TruncNormal, "
                        "prelude_norm=True. Full Cortex architecture with Parcae training recipe. "
@@ -370,10 +374,16 @@ def parse_args() -> argparse.Namespace:
                        "block, Coconut-style) so K=0 Cortex differs from the Parcae baseline. "
                        "parcae          — from scratch, same init as cortex. Pure Parcae baseline "
                        "(no CCoT carry of any kind); useful for ablations. "
+                       "pythia          — TRUE non-recurrent GPTNeoX transformer from scratch (no "
+                       "LTI, no Pre/Loop/Coda, no recurrence). The genuine baseline; use with "
+                       "--mean_recurrence 1 --curriculum_steps 0. "
+                       "ccot            — Coconut-style continuous chain-of-thought over the FULL "
+                       "transformer: each pass's last hidden state is added directly to the next "
+                       "pass's input embeddings. Built on the pythia base; recurrence depth uses "
+                       "--mean_recurrence / --curriculum_steps like cortex. "
                        "vanilla         — from scratch, no prelude_norm. Recurrent-arch-at-T=1 baseline "
-                       "(NOT true Pythia — still has LTI injection and random h0; for a true "
-                       "transformer baseline eval the public EleutherAI checkpoints). "
-                       "Use with --mean_recurrence 1 --curriculum_steps 0. "
+                       "(NOT true Pythia — still has LTI injection and random h0). Superseded by "
+                       "--training_mode pythia for the real transformer baseline. "
                        "retrofit        — Pythia weights, scalable_init=False, h0=z0, prelude_norm=False, "
                        "McLeish layer surgery. Diagnostic only; not expected to converge at <100B tokens. "
                        "cortex_retrofit — Pythia weights + McLeish surgery, then Parcae+Cortex training: "
@@ -543,41 +553,56 @@ def train(args: argparse.Namespace) -> None:
     # ── Model ──────────────────────────────────────────────────────────────
     if main:
         print(f"Loading {args.model_name} ...")
-    _mode_cfg = {
-        # (from_scratch, scalable_init, h0_init, prelude_norm, retrofit_surgery, ccot_direct)
-        # cortex/parcae: from-scratch with Parcae recipe (scalable_init + prelude_norm).
-        # ccot_direct only takes effect when memory_slots == 0: Cortex K=0 then
-        # carries a pooled h_T projection added directly at the start of the
-        # loop block (Coconut-style), so it is NOT identical to the Parcae
-        # baseline.  With memory_slots > 0 the LM2 buffer takes precedence.
-        # retrofit modes: pretrained weights + McLeish surgery; prelude_norm=False for
-        # plain retrofit (disrupts pretrained dist), True for cortex_retrofit which
-        # pairs surgery with the full Parcae stability stack.
-        "cortex":          (True,  True,  "random", True,  False, True),
-        "parcae":          (True,  True,  "random", True,  False, False),
-        # vanilla: recurrent-arch-at-T=1 baseline (still has LTI + random h0) —
-        # use with --mean_recurrence 1 --curriculum_steps 0.  NOT a true Pythia
-        # baseline; for that, eval the public EleutherAI checkpoints directly.
-        "vanilla":         (True,  True,  "random", False, False, False),
-        "retrofit":        (False, False, "z0",     False, True,  False),
-        "cortex_retrofit": (False, False, "z0",     True,  True,  True),
-    }
-    (_from_scratch, _scalable_init, _h0_init, _prelude_norm,
-     _retrofit_surgery, _ccot_direct) = _mode_cfg[args.training_mode]
 
-    model, cfg = build_cortex_gpt(
-        model_name        = args.model_name,
-        memory_slots      = args.memory_slots,
-        memory_slots_iter = args.memory_slots_iter,
-        torch_dtype       = weight_dtype,
-        device_map        = str(device),
-        from_scratch      = _from_scratch,
-        scalable_init     = _scalable_init,
-        h0_init           = _h0_init,
-        prelude_norm      = _prelude_norm,
-        retrofit_surgery  = _retrofit_surgery,
-        ccot_direct       = _ccot_direct,
-    )
+    # The pythia / ccot modes build dedicated non-CortexGPT architectures (a
+    # true transformer and a full-network Coconut-style CCoT model); everything
+    # else is a CortexGPT variant selected by the _mode_cfg tuple below.  Both
+    # paths return (model, cfg) and fall through to the common setup below.
+    if args.training_mode in ("pythia", "ccot"):
+        _builder   = build_pythia if args.training_mode == "pythia" else build_pythia_ccot
+        model, cfg = _builder(
+            model_name   = args.model_name,
+            from_scratch = True,
+            torch_dtype  = weight_dtype,
+            device_map   = str(device),
+        )
+    else:
+        _mode_cfg = {
+            # (from_scratch, scalable_init, h0_init, prelude_norm, retrofit_surgery, ccot_direct)
+            # cortex/parcae: from-scratch with Parcae recipe (scalable_init + prelude_norm).
+            # ccot_direct only takes effect when memory_slots == 0: Cortex K=0 then
+            # carries a pooled h_T projection added directly at the start of the
+            # loop block (Coconut-style), so it is NOT identical to the Parcae
+            # baseline.  With memory_slots > 0 the LM2 buffer takes precedence.
+            # retrofit modes: pretrained weights + McLeish surgery; prelude_norm=False for
+            # plain retrofit (disrupts pretrained dist), True for cortex_retrofit which
+            # pairs surgery with the full Parcae stability stack.
+            "cortex":          (True,  True,  "random", True,  False, True),
+            "parcae":          (True,  True,  "random", True,  False, False),
+            # vanilla: recurrent-arch-at-T=1 baseline (still has LTI + random h0) —
+            # use with --mean_recurrence 1 --curriculum_steps 0.  Superseded by
+            # --training_mode pythia for the true non-recurrent transformer baseline.
+            "vanilla":         (True,  True,  "random", False, False, False),
+            "retrofit":        (False, False, "z0",     False, True,  False),
+            "cortex_retrofit": (False, False, "z0",     True,  True,  True),
+        }
+        (_from_scratch, _scalable_init, _h0_init, _prelude_norm,
+         _retrofit_surgery, _ccot_direct) = _mode_cfg[args.training_mode]
+
+        model, cfg = build_cortex_gpt(
+            model_name        = args.model_name,
+            memory_slots      = args.memory_slots,
+            memory_slots_iter = args.memory_slots_iter,
+            torch_dtype       = weight_dtype,
+            device_map        = str(device),
+            from_scratch      = _from_scratch,
+            scalable_init     = _scalable_init,
+            h0_init           = _h0_init,
+            prelude_norm      = _prelude_norm,
+            retrofit_surgery  = _retrofit_surgery,
+            ccot_direct       = _ccot_direct,
+        )
+
     cfg.mean_recurrence = args.mean_recurrence
     # µbwd = ⌈µrec/2⌉ enforced at init (Parcae App. I)
     cfg.mean_backprop_depth = enforce_mu_bwd(args.mean_recurrence)
@@ -617,11 +642,14 @@ def train(args: argparse.Namespace) -> None:
     if main:
         n_params = sum(p.numel() for p in model.parameters())
         n_train  = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        split    = LAYER_SPLITS[args.model_name]
         print(f"Params: {n_params:,} total, {n_train:,} trainable")
-        print(f"Layer split: Pre={split[0]}, Loop={split[1]}, Coda={split[2]}")
-        print(f"mu_rec={cfg.mean_recurrence}, mu_bwd={cfg.mean_backprop_depth} "
-              f"(= ceil({cfg.mean_recurrence}/2))")
+        print(f"Arch: {cfg.arch} (training_mode={args.training_mode})")
+        if cfg.arch == "cortex":
+            split = LAYER_SPLITS[args.model_name]
+            print(f"Layer split: Pre={split[0]}, Loop={split[1]}, Coda={split[2]}")
+        if cfg.arch in ("cortex", "ccot"):
+            print(f"mu_rec={cfg.mean_recurrence}, mu_bwd={cfg.mean_backprop_depth} "
+                  f"(= ceil({cfg.mean_recurrence}/2))")
 
     # ── Optimizer (Muon) ────────────────────────────────────────────────────
     optimizer = Muon(
@@ -895,7 +923,7 @@ def train(args: argparse.Namespace) -> None:
                 if not args.wandb_disabled:
                     import wandb
                     raw_model = model.module if isinstance(model, DDP) else model
-                    wandb.log({
+                    log_dict = {
                         "train/step":            step,
                         "train/loss":            avg_loss,
                         "train/ppl":             math.exp(avg_loss),
@@ -910,9 +938,13 @@ def train(args: argparse.Namespace) -> None:
                         "train/mu_rec":          current_mu_rec,
                         "train/mu_bwd":          current_mu_bwd,
                         "train/phase":           2 if in_phase2 else 1,
-                        "lti/spectral_norm":     raw_model.lti.spectral_norm(),
-                        "lti/contraction_factor": raw_model.lti.contraction_factor(),
-                    })
+                    }
+                    # LTI metrics only exist on the recurrent CortexGPT arch;
+                    # pythia / ccot have no LTI injection module.
+                    if hasattr(raw_model, "lti"):
+                        log_dict["lti/spectral_norm"]      = raw_model.lti.spectral_norm()
+                        log_dict["lti/contraction_factor"] = raw_model.lti.contraction_factor()
+                    wandb.log(log_dict)
 
                 loss_accum = 0.0
                 step_t0    = time.monotonic()

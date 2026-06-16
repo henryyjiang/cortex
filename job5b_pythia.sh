@@ -19,11 +19,14 @@ conda activate cortex
 export WANDB_DIR=$SCRATCH
 export WANDB_PROJECT=cortex-gpt
 
+# TRUE non-recurrent Pythia (GPTNeoX) transformer baseline.
+# NOTE: this replaces the old `--training_mode vanilla` run, which trained the
+# recurrent CortexGPT architecture at T=1 (with LTI + random h0) and was NOT a
+# real transformer.  The arch differs, so start from a FRESH out_dir — old
+# vanilla checkpoints in runs/pythia-5b cannot be loaded by the pythia arch.
 python train.py \
-    --training_mode vanilla \
+    --training_mode pythia \
     --model_name EleutherAI/pythia-160m \
-    --mean_recurrence 1 \
-    --curriculum_steps 0 \
     --max_tokens 1_250_000_000 \
     --batch_size 32768 \
     --micro_batch_size 4 \

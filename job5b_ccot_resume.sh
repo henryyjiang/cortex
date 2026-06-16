@@ -19,7 +19,7 @@ conda activate cortex
 export WANDB_DIR=$SCRATCH
 export WANDB_PROJECT=cortex-gpt
 
-RUN_DIR=runs/pythia-5b
+RUN_DIR=runs/ccot-5b
 
 # Keep only the 3 most recent checkpoints to save storage
 ls -d ${RUN_DIR}/checkpoint_* 2>/dev/null | sort | head -n -3 | xargs -r rm -rf
@@ -27,7 +27,7 @@ ls -d ${RUN_DIR}/checkpoint_* 2>/dev/null | sort | head -n -3 | xargs -r rm -rf
 # Find the latest checkpoint to resume from
 LATEST=$(ls -d ${RUN_DIR}/checkpoint_* 2>/dev/null | sort | tail -1)
 if [ -z "$LATEST" ]; then
-    echo "No checkpoint found in ${RUN_DIR}. Run job5b_pythia.sh first."
+    echo "No checkpoint found in ${RUN_DIR}. Run job5b_ccot.sh first."
     exit 1
 fi
 echo "Resuming from: $LATEST"
@@ -37,11 +37,13 @@ NEW_MAX_TOKENS=$((PREV_TOKENS + 1250000000))
 echo "Tokens so far: $PREV_TOKENS | Training until: $NEW_MAX_TOKENS"
 
 python train.py \
-    --training_mode pythia \
+    --training_mode ccot \
     --model_name EleutherAI/pythia-160m \
+    --mean_recurrence 8 \
     --max_tokens ${NEW_MAX_TOKENS} \
     --batch_size 32768 \
     --micro_batch_size 4 \
+    --curriculum_steps 3800 \
     --out_dir ${RUN_DIR} \
     --resume_path ${LATEST} \
     --wandb_project cortex-gpt \
