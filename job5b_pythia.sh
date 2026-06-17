@@ -27,6 +27,8 @@ export WANDB_PROJECT=cortex-gpt
 python train.py \
     --training_mode pythia \
     --model_name EleutherAI/pythia-160m \
+    --mean_recurrence 1 \
+    --curriculum_steps 0 \
     --max_tokens 1_250_000_000 \
     --batch_size 32768 \
     --micro_batch_size 4 \

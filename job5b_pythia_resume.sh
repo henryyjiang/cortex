@@ -39,6 +39,8 @@ echo "Tokens so far: $PREV_TOKENS | Training until: $NEW_MAX_TOKENS"
 python train.py \
     --training_mode pythia \
     --model_name EleutherAI/pythia-160m \
+    --mean_recurrence 1 \
+    --curriculum_steps 0 \
     --max_tokens ${NEW_MAX_TOKENS} \
     --batch_size 32768 \
     --micro_batch_size 4 \

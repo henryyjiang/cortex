@@ -603,9 +603,17 @@ def train(args: argparse.Namespace) -> None:
             ccot_direct       = _ccot_direct,
         )
 
-    cfg.mean_recurrence = args.mean_recurrence
-    # µbwd = ⌈µrec/2⌉ enforced at init (Parcae App. I)
-    cfg.mean_backprop_depth = enforce_mu_bwd(args.mean_recurrence)
+    if cfg.arch == "pythia":
+        # True non-recurrent transformer baseline: a single forward pass, no
+        # recurrence at all. PythiaVanilla ignores num_steps, so the run is a
+        # genuine vanilla Pythia regardless of --mean_recurrence; we pin the
+        # saved config to T=1 so checkpoints/logs don't inherit the (ignored)
+        # --mean_recurrence default and misreport this as a recurrent run.
+        cfg.mean_recurrence = cfg.mean_backprop_depth = 1
+    else:
+        cfg.mean_recurrence = args.mean_recurrence
+        # µbwd = ⌈µrec/2⌉ enforced at init (Parcae App. I)
+        cfg.mean_backprop_depth = enforce_mu_bwd(args.mean_recurrence)
 
     model = model.to(device=device, dtype=weight_dtype)
 
@@ -801,27 +809,33 @@ def train(args: argparse.Namespace) -> None:
 
         B = input_ids.shape[0]
 
-        # ── Curriculum: current µrec and µbwd ───────────────────────────────
-        current_mu_rec = get_current_mean_recurrence(
-            step, args.mean_recurrence, args.curriculum_steps
-        )
-        current_mu_bwd = enforce_mu_bwd(current_mu_rec)
-
-        # ── Sample recurrence depths ─────────────────────────────────────────
+        # ── Curriculum + recurrence-depth sampling ──────────────────────────
         unwrapped  = model.module if isinstance(model, DDP) else model
         has_buffer = unwrapped.has_cross_state   # LM2 buffer or direct K=0 carry
-        if unwrapped.config.per_sequence_sampling:
-            # Parcae §4.2: each sequence in the batch gets its own T
-            per_seq = sample_batch_steps(step, B, current_mu_rec, current_mu_bwd)
-            num_steps_arg = per_seq   # list[(n_i, k_i)]
-            # For logging: report the mean T across sequences
-            mean_T_this_step = sum(n + k for n, k in per_seq) / len(per_seq)
-            mean_k_this_step = sum(k for _, k in per_seq) / len(per_seq)
+        if unwrapped.config.arch == "pythia":
+            # True non-recurrent baseline: a single forward pass, no recurrence
+            # sampling or curriculum. PythiaVanilla ignores num_steps; pin it to
+            # one grad pass so the logged T / mu_rec / mu_bwd read exactly 1.
+            current_mu_rec   = current_mu_bwd = 1
+            num_steps_arg    = torch.tensor([0, 1])
+            mean_T_this_step = mean_k_this_step = 1.0
         else:
-            n_nograd, k_grad = sample_num_steps(step, current_mu_rec, current_mu_bwd)
-            num_steps_arg    = torch.tensor([n_nograd, k_grad])
-            mean_T_this_step = float(n_nograd + k_grad)
-            mean_k_this_step = float(k_grad)
+            current_mu_rec = get_current_mean_recurrence(
+                step, args.mean_recurrence, args.curriculum_steps
+            )
+            current_mu_bwd = enforce_mu_bwd(current_mu_rec)
+            if unwrapped.config.per_sequence_sampling:
+                # Parcae §4.2: each sequence in the batch gets its own T
+                per_seq = sample_batch_steps(step, B, current_mu_rec, current_mu_bwd)
+                num_steps_arg = per_seq   # list[(n_i, k_i)]
+                # For logging: report the mean T across sequences
+                mean_T_this_step = sum(n + k for n, k in per_seq) / len(per_seq)
+                mean_k_this_step = sum(k for _, k in per_seq) / len(per_seq)
+            else:
+                n_nograd, k_grad = sample_num_steps(step, current_mu_rec, current_mu_bwd)
+                num_steps_arg    = torch.tensor([n_nograd, k_grad])
+                mean_T_this_step = float(n_nograd + k_grad)
+                mean_k_this_step = float(k_grad)
 
         is_accumulating = (accum_count + 1) < grad_accum_steps
         ctx = (model.no_sync() if isinstance(model, DDP) and is_accumulating
