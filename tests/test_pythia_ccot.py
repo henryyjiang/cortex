@@ -228,3 +228,45 @@ class TestEvalArchDispatch:
                                        torch.device("cpu"))
         assert calls["ccot"] == 1 and calls["pythia"] == 0
         assert isinstance(loaded, PythiaCCoT)
+
+
+# ---------------------------------------------------------------------------
+# Gradient checkpointing — must be a transparent memory optimization
+# ---------------------------------------------------------------------------
+
+class TestGradCheckpointEquivalence:
+    """grad_checkpoint recomputes layers in backward; it must reproduce the
+    uncheckpointed loss AND gradients exactly (within fp tolerance), not just
+    run. Tiny Pythia uses 0 dropout, so recomputation is deterministic."""
+
+    def _loss_and_grads(self, model, ids, labels, num_steps):
+        model.zero_grad(set_to_none=True)
+        out = model(input_ids=ids, labels=labels, num_steps=num_steps)
+        out["loss"].backward()
+        grads = {n: p.grad.detach().clone()
+                 for n, p in model.named_parameters() if p.grad is not None}
+        return out["loss"].detach(), grads
+
+    def _assert_matches(self, ref, ckpt, num_steps):
+        ckpt.load_state_dict(ref.state_dict())          # identical weights
+        ids, labels = _ids()
+        l0, g0 = self._loss_and_grads(ref.train(),  ids, labels, num_steps)
+        l1, g1 = self._loss_and_grads(ckpt.train(), ids, labels, num_steps)
+        assert torch.allclose(l0, l1, atol=1e-5), (l0.item(), l1.item())
+        assert g0.keys() == g1.keys()
+        for k in g0:
+            assert torch.allclose(g0[k], g1[k], atol=1e-4, rtol=1e-3), k
+
+    def test_ccot_checkpoint_matches_uncheckpointed(self):
+        # n=1 no-grad prefix + k=2 grad passes exercises the TBPTT boundary.
+        ref  = PythiaCCoT(_tiny_base(), CortexConfig(arch="ccot", hidden_size=H))
+        ckpt = PythiaCCoT(_tiny_base(), CortexConfig(arch="ccot", hidden_size=H,
+                                                     grad_checkpoint=True))
+        self._assert_matches(ref, ckpt, torch.tensor([1, 2]))
+
+    def test_pythia_checkpoint_matches_uncheckpointed(self):
+        # PythiaVanilla uses HF's native gradient_checkpointing_enable.
+        ref  = PythiaVanilla(_tiny_base(), CortexConfig(arch="pythia", hidden_size=H))
+        ckpt = PythiaVanilla(_tiny_base(), CortexConfig(arch="pythia", hidden_size=H,
+                                                        grad_checkpoint=True))
+        self._assert_matches(ref, ckpt, None)

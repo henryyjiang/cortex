@@ -444,6 +444,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--dtype",                default="bfloat16",
                    choices=["float32", "bfloat16"])
     p.add_argument("--compile",              action="store_true")
+    p.add_argument("--grad_checkpoint",      action="store_true",
+                   help="Activation checkpointing: recompute layers in backward "
+                        "instead of storing activations (~33%% more compute, "
+                        "~3-5x less activation memory). Required headroom for the "
+                        "deep recurrent loop and for scaling to pythia-2.8b.")
     p.add_argument("--wandb_project",        default="cortex-gpt")
     p.add_argument("--wandb_disabled",       action="store_true")
 
@@ -561,10 +566,11 @@ def train(args: argparse.Namespace) -> None:
     if args.training_mode in ("pythia", "ccot"):
         _builder   = build_pythia if args.training_mode == "pythia" else build_pythia_ccot
         model, cfg = _builder(
-            model_name   = args.model_name,
-            from_scratch = True,
-            torch_dtype  = weight_dtype,
-            device_map   = str(device),
+            model_name      = args.model_name,
+            from_scratch    = True,
+            torch_dtype     = weight_dtype,
+            device_map      = str(device),
+            grad_checkpoint = args.grad_checkpoint,
         )
     else:
         _mode_cfg = {
@@ -601,6 +607,7 @@ def train(args: argparse.Namespace) -> None:
             prelude_norm      = _prelude_norm,
             retrofit_surgery  = _retrofit_surgery,
             ccot_direct       = _ccot_direct,
+            grad_checkpoint   = args.grad_checkpoint,
         )
 
     if cfg.arch == "pythia":
@@ -652,6 +659,7 @@ def train(args: argparse.Namespace) -> None:
         n_train  = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f"Params: {n_params:,} total, {n_train:,} trainable")
         print(f"Arch: {cfg.arch} (training_mode={args.training_mode})")
+        print(f"Grad checkpointing: {args.grad_checkpoint}")
         if cfg.arch == "cortex":
             split = LAYER_SPLITS[args.model_name]
             print(f"Layer split: Pre={split[0]}, Loop={split[1]}, Coda={split[2]}")

@@ -18,6 +18,7 @@ conda activate cortex
 
 export WANDB_DIR=$SCRATCH
 export WANDB_PROJECT=cortex-gpt
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 RUN_DIR=runs/pythia-5b
 

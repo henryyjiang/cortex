@@ -18,6 +18,7 @@ conda activate cortex
 
 export WANDB_DIR=$SCRATCH
 export WANDB_PROJECT=cortex-gpt
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 python train.py \
     --training_mode parcae \
@@ -26,6 +27,7 @@ python train.py \
     --max_tokens 1_250_000_000 \
     --batch_size 32768 \
     --micro_batch_size 4 \
+    --grad_checkpoint \
     --curriculum_steps 3800 \
     --out_dir runs/parcae-5b \
     --wandb_project cortex-gpt \

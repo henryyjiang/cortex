@@ -18,6 +18,7 @@ conda activate cortex
 
 export WANDB_DIR=$SCRATCH
 export WANDB_PROJECT=cortex-gpt
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 RUN_DIR=runs/cortex-5b-k4
 
@@ -44,6 +45,7 @@ python train.py \
     --max_tokens ${NEW_MAX_TOKENS} \
     --batch_size 32768 \
     --micro_batch_size 4 \
+    --grad_checkpoint \
     --curriculum_steps 3800 \
     --out_dir ${RUN_DIR} \
     --resume_path ${LATEST} \

@@ -53,6 +53,7 @@ from typing import Optional, Union
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.checkpoint import checkpoint
 
 
 # ---------------------------------------------------------------------------
@@ -116,6 +117,15 @@ class CortexConfig:
     # the buffer-write path from the Coda-prediction path.  Identity-initialized so
     # it is a no-op at step 0.  Only active when memory_slots > 0.
     h_T_proj: bool = True
+
+    # Gradient (activation) checkpointing: recompute each transformer layer in the
+    # backward pass instead of storing its activations.  Essential for scaling the
+    # recurrent loop (the k grad steps x n_loop layers, held un-detached across
+    # n_chunks segments, are the dominant activation cost) and for large models
+    # (pythia-2.8b).  ~33% extra compute for a ~3-5x activation-memory cut.  Only
+    # active during training on grad-requiring passes; eval and the no-grad TBPTT
+    # prefix run uncheckpointed.
+    grad_checkpoint: bool = False
 
     # Scalable init: divide loop output-projection weights by √mean_T at construction.
     # Correct for from-scratch training (Parcae); should be disabled when retrofitting
@@ -648,7 +658,16 @@ class CortexGPT(nn.Module):
     # ------------------------------------------------------------------
 
     def _layer_fwd(self, x, layer, attn_mask, pos_emb):
-        out = layer(x, attention_mask=attn_mask, position_embeddings=pos_emb)
+        # Gradient checkpointing: recompute this layer in backward instead of
+        # storing its activations.  Only on grad-requiring passes — the no-grad
+        # TBPTT prefix (torch.is_grad_enabled() == False) and eval run normally.
+        if self.config.grad_checkpoint and torch.is_grad_enabled() and x.requires_grad:
+            out = checkpoint(
+                layer, x, attention_mask=attn_mask, position_embeddings=pos_emb,
+                use_reentrant=False,
+            )
+        else:
+            out = layer(x, attention_mask=attn_mask, position_embeddings=pos_emb)
         # Transformers ≥4.47 GPTNeoXLayer.forward returns a plain tensor, not a tuple.
         # Older versions returned (hidden_states, ...). Handle both.
         return out[0] if isinstance(out, tuple) else out
@@ -1011,6 +1030,11 @@ class PythiaVanilla(nn.Module):
         # fallback, not Newton-Schulz (which would orthogonalise the rows).
         self.base.gpt_neox.embed_in.weight._no_weight_decay = True
         self.base.embed_out.weight._no_weight_decay          = True
+        # PythiaVanilla runs the stock HF forward, so use HF's native gradient
+        # checkpointing (non-reentrant) rather than the manual _layer_fwd wrap.
+        if config.grad_checkpoint:
+            self.base.gradient_checkpointing_enable(
+                gradient_checkpointing_kwargs={"use_reentrant": False})
 
     @property
     def has_cross_state(self) -> bool:
@@ -1097,7 +1121,16 @@ class PythiaCCoT(nn.Module):
 
     # ── layer / mask helpers (mirror CortexGPT) ──────────────────────────────
     def _layer_fwd(self, x, layer, attn_mask, pos_emb):
-        out = layer(x, attention_mask=attn_mask, position_embeddings=pos_emb)
+        # Gradient checkpointing on grad-requiring passes only (see CortexGPT).
+        # Critical for ccot: each grad pass is a FULL-network forward, so the k
+        # grad passes otherwise hold k x n_layers worth of activations.
+        if self.config.grad_checkpoint and torch.is_grad_enabled() and x.requires_grad:
+            out = checkpoint(
+                layer, x, attention_mask=attn_mask, position_embeddings=pos_emb,
+                use_reentrant=False,
+            )
+        else:
+            out = layer(x, attention_mask=attn_mask, position_embeddings=pos_emb)
         return out[0] if isinstance(out, tuple) else out
 
     def _build_attn_mask(self, attention_mask, seq_len, device):
@@ -1210,6 +1243,7 @@ def build_pythia(
     trust_remote_code: bool        = False,
     torch_dtype:       torch.dtype = torch.bfloat16,
     device_map:        str         = "cpu",
+    grad_checkpoint:   bool        = False,
 ) -> tuple[PythiaVanilla, CortexConfig]:
     """Build the true non-recurrent Pythia baseline (arch='pythia')."""
     base        = _build_base(model_name, from_scratch, trust_remote_code,
@@ -1228,6 +1262,7 @@ def build_pythia(
         scalable_init   = False,
         prelude_norm    = False,
         ccot_direct     = False,
+        grad_checkpoint = grad_checkpoint,
     )
     model = PythiaVanilla(base, cfg).to(dtype=torch_dtype)
     return model, cfg
@@ -1239,6 +1274,7 @@ def build_pythia_ccot(
     trust_remote_code: bool        = False,
     torch_dtype:       torch.dtype = torch.bfloat16,
     device_map:        str         = "cpu",
+    grad_checkpoint:   bool        = False,
 ) -> tuple[PythiaCCoT, CortexConfig]:
     """Build the full-network Coconut-style continuous-CoT model (arch='ccot')."""
     base        = _build_base(model_name, from_scratch, trust_remote_code,
@@ -1257,6 +1293,7 @@ def build_pythia_ccot(
         scalable_init   = False,
         prelude_norm    = False,
         ccot_direct     = False,
+        grad_checkpoint = grad_checkpoint,
     )
     model = PythiaCCoT(base, cfg).to(dtype=torch_dtype)
     return model, cfg
@@ -1275,6 +1312,7 @@ def build_cortex_gpt(
     prelude_norm:       bool         = True,
     retrofit_surgery:   bool         = False,
     ccot_direct:        bool         = False,
+    grad_checkpoint:    bool         = False,
 ) -> tuple[CortexGPT, CortexConfig]:
     from transformers import AutoModelForCausalLM, AutoConfig
 
@@ -1324,6 +1362,7 @@ def build_cortex_gpt(
         prelude_norm      = prelude_norm,
         loop_start_idx    = loop_start_idx,
         ccot_direct       = ccot_direct,
+        grad_checkpoint   = grad_checkpoint,
     )
 
     model = CortexGPT(base, cfg)

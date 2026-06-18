@@ -18,6 +18,7 @@ conda activate cortex
 
 export WANDB_DIR=$SCRATCH
 export WANDB_PROJECT=cortex-gpt
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # TRUE non-recurrent Pythia (GPTNeoX) transformer baseline.
 # NOTE: this replaces the old `--training_mode vanilla` run, which trained the

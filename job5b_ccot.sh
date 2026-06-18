@@ -18,6 +18,7 @@ conda activate cortex
 
 export WANDB_DIR=$SCRATCH
 export WANDB_PROJECT=cortex-gpt
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # NORMAL continuous chain-of-thought (Coconut-style) over the FULL transformer.
 # Each recurrent pass runs the whole Pythia stack; the pass's last hidden state
@@ -37,6 +38,7 @@ python train.py \
     --max_tokens 1_250_000_000 \
     --batch_size 32768 \
     --micro_batch_size 4 \
+    --grad_checkpoint \
     --curriculum_steps 3800 \
     --out_dir runs/ccot-5b \
     --wandb_project cortex-gpt \
