@@ -36,4 +36,4 @@ python train.py \
     --out_dir runs/pythia-5b \
     --wandb_project cortex-gpt \
     --log_interval 10 \
-    --save_interval 10000
+    --save_interval 2000

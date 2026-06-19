@@ -49,4 +49,4 @@ python train.py \
     --resume_path ${LATEST} \
     --wandb_project cortex-gpt \
     --log_interval 10 \
-    --save_interval 10000
+    --save_interval 2000

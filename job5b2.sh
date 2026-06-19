@@ -4,6 +4,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=64GB
 #SBATCH --gres=gpu:A100:1
+#SBATCH --constraint=A100-80GB
 #SBATCH -t 24:00:00
 #SBATCH -q inferno
 #SBATCH -o logs/Report-%j.out
@@ -28,9 +29,8 @@ python train.py \
     --max_tokens 1_250_000_000 \
     --batch_size 32768 \
     --micro_batch_size 4 \
-    --grad_checkpoint \
     --curriculum_steps 3800 \
     --out_dir runs/cortex-5b-k4 \
     --wandb_project cortex-gpt \
     --log_interval 10 \
-    --save_interval 10000
+    --save_interval 2000
