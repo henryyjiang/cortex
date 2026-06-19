@@ -24,26 +24,29 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 RUN_DIR=runs/ccot-5b
 
-# Keep only the 3 most recent checkpoints to save storage
-ls -d ${RUN_DIR}/checkpoint_* 2>/dev/null | sort | head -n -3 | xargs -r rm -rf
-
-# Find the latest checkpoint to resume from
+# ── ONE-OFF: finish the first 1.25B-token chunk that timed out ~12 min short ──
+# The normal resume script would set max_tokens = prev_tokens + 1.25B, which
+# changes max_steps and therefore the whole LR/cooldown schedule.  Here we
+# instead CAP at the ORIGINAL fresh-run budget (1.25B → max_steps 38146) so the
+# schedule is byte-identical to the other runs and CCoT ends at the same step.
+# After this completes, go back to the normal job5b_ccot_resume.sh for the next
+# chunk (it will increment from the 1.25B checkpoint as usual).
+#
+# Resumes from the latest checkpoint (step 30000 — the last save before the
+# timeout).  Steps 30000->38146 are re-run; that's expected.  DELETE this script
+# once the chunk is done.
 LATEST=$(ls -d ${RUN_DIR}/checkpoint_* 2>/dev/null | sort | tail -1)
 if [ -z "$LATEST" ]; then
     echo "No checkpoint found in ${RUN_DIR}. Run job5b_ccot.sh first."
     exit 1
 fi
-echo "Resuming from: $LATEST"
-
-PREV_TOKENS=$(python -c "import torch; ckpt=torch.load('${LATEST}/checkpoint.pt', weights_only=False); print(ckpt['total_tokens'])")
-NEW_MAX_TOKENS=$((PREV_TOKENS + 1250000000))
-echo "Tokens so far: $PREV_TOKENS | Training until: $NEW_MAX_TOKENS"
+echo "Resuming from: $LATEST (capping at 1.25B tokens to match the other runs)"
 
 python train.py \
     --training_mode ccot \
     --model_name EleutherAI/pythia-160m \
     --mean_recurrence 8 \
-    --max_tokens ${NEW_MAX_TOKENS} \
+    --max_tokens 1_250_000_000 \
     --batch_size 32768 \
     --micro_batch_size 4 \
     --grad_checkpoint \
@@ -52,4 +55,4 @@ python train.py \
     --resume_path ${LATEST} \
     --wandb_project cortex-gpt \
     --log_interval 10 \
-    --save_interval 10000
+    --save_interval 2000

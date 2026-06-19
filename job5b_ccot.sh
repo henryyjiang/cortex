@@ -3,7 +3,9 @@
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=64GB
-#SBATCH --gres=gpu:A100:1
+# CCoT is the heaviest variant; pin the 80GB A100 (verify the gres name on
+# Phoenix with: sinfo -o '%G' | tr ',' '\n' | grep -i a100).
+#SBATCH --gres=gpu:A100-80GB:1
 #SBATCH -t 24:00:00
 #SBATCH -q inferno
 #SBATCH -o logs/Report-%j.out
