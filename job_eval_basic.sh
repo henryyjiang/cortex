@@ -19,35 +19,51 @@ conda activate cortex
 export RESULTS_DIR="eval_results/basic_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$RESULTS_DIR"
 
-# ── Checkpoint paths ──────────────────────────────────────────────────────────
-CORTEX_CKPT="runs/cortex-5b/checkpoint_0154441/checkpoint.pt"
-CORTEX_K4_CKPT="runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt"
-PYTHIA_CKPT="runs/pythia-5b/checkpoint_0152584/checkpoint.pt"
-PARCAE_CKPT="runs/parcae-5b/checkpoint_0154441/checkpoint.pt"
+# ── Basic / harder benchmark suite ──────────────────────────────────────────
+# Multiple choice (HellaSwag, WinoGrande, ARC-Easy, ARC-Challenge, PIQA) + GSM8K.
+# These mostly need larger scale than 155M to clear chance; job_eval_easy.sh has
+# the benchmarks that give usable signal at this size.
 
-declare -A CKPTS=(
-    ["cortex-5b"]="$CORTEX_CKPT"
-    ["cortex-5b-k4"]="$CORTEX_K4_CKPT"
-    ["pythia-5b"]="$PYTHIA_CKPT"
-    ["parcae-5b"]="$PARCAE_CKPT"
+# Model run directories.  The latest checkpoint in each is auto-discovered, so
+# this keeps working as the runs advance (no hardcoded step numbers).
+declare -A RUN_DIR=(
+    ["pythia-5b"]="runs/pythia-5b"        # TRUE non-recurrent transformer baseline
+    ["parcae-5b"]="runs/parcae-5b"        # Pre/Loop/Coda + LTI, no carry
+    ["ccot-5b"]="runs/ccot-5b"            # Coconut-style full-network continuous CoT
+    ["cortex-5b"]="runs/cortex-5b"        # Cortex K=0 (DirectCCoT carry)
+    ["cortex-5b-k4"]="runs/cortex-5b-k4"  # Cortex K=4 (LM2 memory slots)
 )
+# T=1 for the non-recurrent pythia baseline; the recurrent / CCoT models omit
+# --T so the eval CLI uses each checkpoint's saved mean_recurrence.
 # memory_slots is read from each checkpoint's saved config by the eval CLIs.
-# T=1 for pythia (vanilla transformer); None (omitted) for recurrent models
-# so they use their saved mean_recurrence
 declare -A T_FLAG=(
-    ["cortex-5b"]=""
-    ["cortex-5b-k4"]=""
     ["pythia-5b"]="--T 1"
     ["parcae-5b"]=""
+    ["ccot-5b"]=""
+    ["cortex-5b"]=""
+    ["cortex-5b-k4"]=""
 )
 
-MODELS=("cortex-5b" "cortex-5b-k4" "pythia-5b" "parcae-5b")
+MODELS=("pythia-5b" "parcae-5b" "ccot-5b" "cortex-5b" "cortex-5b-k4")
+
+# Resolve each model to its latest checkpoint once, up front.
+declare -A CKPTS=()
+for MODEL in "${MODELS[@]}"; do
+    LATEST=$(ls -d ${RUN_DIR[$MODEL]}/checkpoint_* 2>/dev/null | sort | tail -1)
+    if [ -z "$LATEST" ]; then
+        echo "WARNING: no checkpoint found in ${RUN_DIR[$MODEL]} — $MODEL will be skipped"
+        continue
+    fi
+    CKPTS[$MODEL]="${LATEST}/checkpoint.pt"
+    echo "[$MODEL] ${CKPTS[$MODEL]}"
+done
 
 # ── Multiple choice (HellaSwag, WinoGrande, ARC-Easy, ARC-Challenge, PIQA) ───
 echo "============================================================"
 echo "Multiple choice"
 echo "============================================================"
 for MODEL in "${MODELS[@]}"; do
+    [ -z "${CKPTS[$MODEL]}" ] && continue
     echo "[$MODEL]"
     python evals/eval_multiple_choice.py \
         --checkpoint "${CKPTS[$MODEL]}" \
@@ -61,6 +77,7 @@ echo "============================================================"
 echo "GSM8K"
 echo "============================================================"
 for MODEL in "${MODELS[@]}"; do
+    [ -z "${CKPTS[$MODEL]}" ] && continue
     echo "[$MODEL]"
     python evals/eval_gsm8k.py \
         --checkpoint "${CKPTS[$MODEL]}" \
@@ -78,7 +95,7 @@ import json, os, sys
 from pathlib import Path
 
 results_dir = Path(os.environ["RESULTS_DIR"])
-MODELS = ["cortex-5b", "cortex-5b-k4", "pythia-5b", "parcae-5b"]
+MODELS = ["pythia-5b", "parcae-5b", "ccot-5b", "cortex-5b", "cortex-5b-k4"]
 
 def load_json(path):
     if not path.exists():

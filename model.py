@@ -1225,15 +1225,21 @@ class PythiaCCoT(nn.Module):
 # Factory
 # ---------------------------------------------------------------------------
 
-def _build_base(model_name, from_scratch, trust_remote_code, torch_dtype, device_map):
-    """Build the underlying GPTNeoXForCausalLM (random init or pretrained)."""
+def _build_base(model_name, from_scratch, trust_remote_code, torch_dtype, device_map,
+                revision=None):
+    """Build the underlying GPTNeoXForCausalLM (random init or pretrained).
+
+    `revision` selects a HuggingFace git revision (e.g. "step2000") and only
+    applies to the pretrained path — it lets eval load an official Pythia
+    intermediate checkpoint at a chosen token count.
+    """
     from transformers import AutoModelForCausalLM, AutoConfig
     if from_scratch:
         cfg_hf = AutoConfig.from_pretrained(model_name, trust_remote_code=trust_remote_code)
         return AutoModelForCausalLM.from_config(cfg_hf).to(dtype=torch_dtype)
     return AutoModelForCausalLM.from_pretrained(
         model_name, torch_dtype=torch_dtype, device_map=device_map,
-        trust_remote_code=trust_remote_code,
+        trust_remote_code=trust_remote_code, revision=revision,
     )
 
 
@@ -1244,10 +1250,15 @@ def build_pythia(
     torch_dtype:       torch.dtype = torch.bfloat16,
     device_map:        str         = "cpu",
     grad_checkpoint:   bool        = False,
+    revision:          Optional[str] = None,
 ) -> tuple[PythiaVanilla, CortexConfig]:
-    """Build the true non-recurrent Pythia baseline (arch='pythia')."""
+    """Build the true non-recurrent Pythia baseline (arch='pythia').
+
+    `revision` (e.g. "step2000") loads an official Pythia intermediate
+    checkpoint at a chosen token count; only used with from_scratch=False.
+    """
     base        = _build_base(model_name, from_scratch, trust_remote_code,
-                              torch_dtype, device_map)
+                              torch_dtype, device_map, revision=revision)
     hidden_size = base.gpt_neox.embed_in.embedding_dim
     split       = LAYER_SPLITS.get(model_name, (0, 0, 0))
     cfg = CortexConfig(

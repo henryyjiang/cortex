@@ -418,6 +418,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--grad_clip",            type=float, default=1.0)
     p.add_argument("--warmup_ratio",         type=float, default=0.01)
     p.add_argument("--cooldown_ratio",       type=float, default=0.1)
+    p.add_argument("--schedule_tokens",      type=int,   default=0,
+                   help="Token horizon for the LR/WD schedule (warmup, cooldown, "
+                        "weight-decay anneal). 0 = use --max_tokens. Set this to the "
+                        "FINAL planned total tokens so chunked resume segments share "
+                        "ONE schedule instead of each cooling down at its own end. "
+                        "--max_tokens still controls when this segment stops.")
 
     # Batch
     p.add_argument("--batch_size",           type=int,   default=512,
@@ -683,6 +689,12 @@ def train(args: argparse.Namespace) -> None:
     # seq_len chunks, i.e. micro_seqs * n_chunks "sequences" of the budget.
     grad_accum_steps = max(1, seqs_per_step // (micro_seqs * n_chunks * world_size))
     max_steps        = args.max_tokens // args.batch_size
+    # Schedule horizon: defaults to max_steps, but --schedule_tokens lets chunked
+    # resume segments anchor warmup / cooldown / WD-anneal to the FINAL planned
+    # total, so the schedule is one smooth curve across resumes rather than
+    # restarting (cooling down + re-warming) at every segment boundary.
+    # max_steps (above) still controls when THIS segment stops.
+    sched_steps      = (args.schedule_tokens // args.batch_size) if args.schedule_tokens else max_steps
 
     seqs_per_micro = micro_seqs * n_chunks * world_size
     if main and seqs_per_step % seqs_per_micro != 0:
@@ -692,15 +704,16 @@ def train(args: argparse.Namespace) -> None:
               f"effective tokens/step = {eff_tokens} != batch_size = "
               f"{args.batch_size}. Adjust micro_batch_size or batch_size.")
 
-    warmup_steps   = max(1, int(max_steps * args.warmup_ratio))
-    cooldown_steps = max(1, int(max_steps * args.cooldown_ratio))
+    warmup_steps   = max(1, int(sched_steps * args.warmup_ratio))
+    cooldown_steps = max(1, int(sched_steps * args.cooldown_ratio))
 
     if main:
         print(f"Effective batch: {args.batch_size} tokens = "
               f"{seqs_per_step} seqs x {tokens_per_seq} tok")
         print(f"Grad accum: {grad_accum_steps} | Cross-chunks: {n_chunks} | "
               f"World size: {world_size}")
-        print(f"Max steps: {max_steps:,} | Warmup: {warmup_steps} | Cooldown: {cooldown_steps}")
+        print(f"Stop at step: {max_steps:,} | Schedule horizon: {sched_steps:,} | "
+              f"Warmup: {warmup_steps} | Cooldown: {cooldown_steps}")
         if args.curriculum_steps > 0:
             print(f"Curriculum: mu_rec ramps 1->{args.mean_recurrence} over {args.curriculum_steps} steps")
 
@@ -887,7 +900,7 @@ def train(args: argparse.Namespace) -> None:
 
         # ── Optimizer step ────────────────────────────────────────────────────
         if accum_count >= grad_accum_steps:
-            lr_now = get_lr(step, max_steps, args.lr, warmup_steps, cooldown_steps)
+            lr_now = get_lr(step, sched_steps, args.lr, warmup_steps, cooldown_steps)
 
             # Muon momentum warmup: 0.85 → target over muon_momentum_warmup steps
             if args.muon_momentum_warmup > 0:
@@ -896,8 +909,9 @@ def train(args: argparse.Namespace) -> None:
             else:
                 current_momentum = base_momentum
 
-            # Weight decay annealing: base_wd → 0 over max_steps (Parcae train.py)
-            current_wd = args.weight_decay * max(0.0, 1.0 - step / max_steps)
+            # Weight decay annealing: base_wd → 0 over the schedule horizon
+            # (Parcae train.py).  Uses sched_steps so chunked resumes anneal once.
+            current_wd = args.weight_decay * max(0.0, 1.0 - step / sched_steps)
 
             for pg in optimizer.param_groups:
                 pg["lr"]           = lr_now

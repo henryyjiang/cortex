@@ -39,6 +39,7 @@ import torch.nn.functional as F
 from transformers import AutoTokenizer
 
 from model_utils import load_checkpoint
+from model import build_pythia
 # Reuse the multiple-choice scorer/runner and two of its dataset loaders so the
 # MC methodology is identical to eval_multiple_choice.py.
 from eval_multiple_choice import log_prob_of_completion, run_task, load_arc, load_piqa
@@ -53,7 +54,15 @@ TASK_CHOICES = ["lambada", "blimp", "sciq", "arc_easy", "piqa"]
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser("Easy / small-model evaluation for CortexGPT")
-    p.add_argument("--checkpoint",   type=str, required=True)
+    p.add_argument("--checkpoint",   type=str, default=None,
+                   help="Local .pt checkpoint to evaluate (CortexGPT/Pythia/CCoT)")
+    p.add_argument("--hf_model",     type=str, default=None,
+                   help="Instead of --checkpoint, eval an official HF Pythia model "
+                        "(e.g. EleutherAI/pythia-160m-deduped) as a reference. "
+                        "Forces the non-recurrent T=1 path.")
+    p.add_argument("--revision",     type=str, default=None,
+                   help="HF git revision for --hf_model, e.g. step2000 (~4.2B tokens) "
+                        "or step3000 (~6.3B tokens)")
     p.add_argument("--model_name",   default="EleutherAI/pythia-160m")
     p.add_argument("--memory_slots", type=int, default=None,
                    help="Override K; default reads memory_slots from the checkpoint config")
@@ -214,10 +223,26 @@ def main() -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dtype  = torch.bfloat16 if args.dtype == "bfloat16" else torch.float32
 
-    print(f"Loading checkpoint: {args.checkpoint}")
-    model, cfg = load_checkpoint(args.checkpoint, args.model_name,
-                                 args.memory_slots, dtype, device)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    if bool(args.checkpoint) == bool(args.hf_model):
+        raise SystemExit("Pass exactly one of --checkpoint or --hf_model")
+
+    if args.hf_model:
+        rev = f"@{args.revision}" if args.revision else ""
+        print(f"Loading HF reference model: {args.hf_model}{rev}")
+        model, cfg = build_pythia(
+            model_name=args.hf_model, from_scratch=False,
+            torch_dtype=dtype, device_map="cpu", revision=args.revision,
+        )
+        model = model.to(device).eval()
+        tok_name = args.hf_model
+        args.T = 1                      # official Pythia is non-recurrent
+    else:
+        print(f"Loading checkpoint: {args.checkpoint}")
+        model, cfg = load_checkpoint(args.checkpoint, args.model_name,
+                                     args.memory_slots, dtype, device)
+        tok_name = args.model_name
+
+    tokenizer = AutoTokenizer.from_pretrained(tok_name)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
 

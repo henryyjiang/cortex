@@ -63,6 +63,39 @@ for MODEL in "${MODELS[@]}"; do
         --out_dir "$RESULTS_DIR/$MODEL"
 done
 
+# ── Official Pythia reference (opt-in) ───────────────────────────────────────
+# Token-matched external reference: canonical EleutherAI Pythia-160m-deduped
+# (same data/tokenizer as our runs) at intermediate revisions.  step2000 ~=4.2B,
+# step3000 ~=6.3B tokens; our runs are ~5.0B, so these bracket our token count.
+# NOT a controlled baseline (64x larger batch, AdamW not Muon, LR schedule sized
+# for the full 143k-step run) — read as a sanity reference, our own pythia-5b is
+# the apples-to-apples baseline.
+#
+# Loads weights from HuggingFace, so the compute nodes (no internet) need them
+# cached first.  On a LOGIN node, run once:
+#   python -c "from transformers import AutoModelForCausalLM as M; \
+#     [M.from_pretrained('EleutherAI/pythia-160m-deduped', revision=r) \
+#      for r in ('step2000','step3000')]"
+# then submit with:  INCLUDE_HF_REF=1 sbatch job_eval_easy.sh
+if [ -n "$INCLUDE_HF_REF" ]; then
+    echo "============================================================"
+    echo "Official Pythia reference (HF)"
+    echo "============================================================"
+    declare -A HF_REF=(
+        ["pythia-deduped-step2000"]="EleutherAI/pythia-160m-deduped@step2000"
+        ["pythia-deduped-step3000"]="EleutherAI/pythia-160m-deduped@step3000"
+    )
+    for REF in "${!HF_REF[@]}"; do
+        SPEC="${HF_REF[$REF]}"
+        echo "[$REF] ${SPEC%@*} @ ${SPEC#*@}"
+        python evals/eval_easy.py \
+            --hf_model "${SPEC%@*}" \
+            --revision "${SPEC#*@}" \
+            --tasks lambada blimp sciq arc_easy piqa \
+            --out_dir "$RESULTS_DIR/$REF"
+    done
+fi
+
 # ── Aggregate into a table ──────────────────────────────────────────────────
 echo "============================================================"
 echo "Results"
@@ -74,6 +107,9 @@ from pathlib import Path
 
 results_dir = Path(os.environ["RESULTS_DIR"])
 MODELS = ["pythia-5b", "parcae-5b", "ccot-5b", "cortex-5b", "cortex-5b-k4"]
+# Official Pythia reference rows show only when INCLUDE_HF_REF ran them (else N/A).
+if os.environ.get("INCLUDE_HF_REF"):
+    MODELS += ["pythia-deduped-step2000", "pythia-deduped-step3000"]
 TASKS  = ["lambada", "blimp", "sciq", "arc_easy", "piqa"]
 
 def load_json(path):

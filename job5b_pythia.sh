@@ -31,6 +31,7 @@ python train.py \
     --mean_recurrence 1 \
     --curriculum_steps 0 \
     --max_tokens 1_250_000_000 \
+    --schedule_tokens 5_000_000_000 \
     --batch_size 32768 \
     --micro_batch_size 4 \
     --out_dir runs/pythia-5b \
