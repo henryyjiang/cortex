@@ -1,0 +1,125 @@
+---------------------------------------
+Begin Slurm Prolog: Jun-20-2026 23:32:24
+Job ID:    10250583
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job5b_resume.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+Resuming from: runs/cortex-5b/checkpoint_0076292
+Tokens so far: 2499936256 | Training until: 3749936256
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading EleutherAI/pythia-160m ...
+Params: 164,095,488 total, 164,095,488 trainable
+Arch: cortex (training_mode=cortex)
+Grad checkpointing: False
+Layer split: Pre=3, Loop=6, Coda=3
+mu_rec=8, mu_bwd=4 (= ceil(8/2))
+Effective batch: 32768 tokens = 16 seqs x 2048 tok
+Grad accum: 1 | Cross-chunks: 4 | World size: 1
+Max steps: 114,438 | Warmup: 1144 | Cooldown: 11443
+Curriculum: mu_rec ramps 1->8 over 3800 steps
+Resumed from step 76292, 2,499,936,256 tokens
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /storage/home/hcoda1/3/hjiang420/.netrc.
+wandb: Currently logged in as: henryyjiang42 (henryyjiang42-georgia-institute-of-technology) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.27.0
+wandb: Run data is saved locally in runs/cortex-5b/wandb/run-20260620_233400-oeaj6bhw
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Resuming run cortex-5b
+wandb: ⭐️ View project at https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt
+wandb: 🚀 View run at https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt/runs/oeaj6bhw
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/train.py", line 1008, in <module>
+    train(args)
+  File "/storage/home/hcoda1/3/hjiang420/cortex/train.py", line 807, in train
+    batch = next(data_iter)
+            ^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 701, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1465, in _next_data
+    return self._process_data(data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1491, in _process_data
+    data.reraise()
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/_utils.py", line 714, in reraise
+    raise RuntimeError(msg) from None
+RuntimeError: Caught HfHubHTTPError in DataLoader worker process 1.
+Original Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/utils/data/_utils/worker.py", line 351, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 33, in fetch
+    data.append(next(self.dataset_iter))
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/data.py", line 118, in __iter__
+    _fill(stream)
+  File "/storage/home/hcoda1/3/hjiang420/cortex/data.py", line 112, in _fill
+    for doc in stream:
+  File "/storage/home/hcoda1/3/hjiang420/cortex/data.py", line 76, in _stream
+    ds = load_dataset(
+         ^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/datasets/load.py", line 1688, in load_dataset
+    builder_instance = load_dataset_builder(
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/datasets/load.py", line 1315, in load_dataset_builder
+    dataset_module = dataset_module_factory(
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/datasets/load.py", line 1207, in dataset_module_factory
+    raise e1 from None
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/datasets/load.py", line 1182, in dataset_module_factory
+    ).get_module()
+      ^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/datasets/load.py", line 638, in get_module
+    patterns = get_data_patterns(base_path, download_config=self.download_config)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/datasets/data_files.py", line 493, in get_data_patterns
+    return _get_data_files_patterns(resolver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/datasets/data_files.py", line 268, in _get_data_files_patterns
+    data_files = pattern_resolver(pattern)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/datasets/data_files.py", line 372, in resolve_pattern
+    for filepath, info in fs.glob(fs_pattern, detail=True, **glob_kwargs).items():
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/huggingface_hub/hf_file_system.py", line 726, in glob
+    return super().glob(path, maxdepth=maxdepth, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/fsspec/spec.py", line 642, in glob
+    allpaths = self.find(root, maxdepth=depth, withdirs=True, detail=True, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/huggingface_hub/hf_file_system.py", line 765, in find
+    out = self._ls_tree(path, recursive=True, refresh=refresh, maxdepth=maxdepth, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/huggingface_hub/hf_file_system.py", line 612, in _ls_tree
+    for path_info in tree:
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/huggingface_hub/hf_api.py", line 3830, in list_repo_tree
+    for path_info in paginate(path=tree_url, headers=headers, params={"recursive": recursive, "expand": expand}):
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/huggingface_hub/utils/_pagination.py", line 36, in paginate
+    hf_raise_for_status(r)
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/huggingface_hub/utils/_http.py", line 877, in hf_raise_for_status
+    raise _format(HfHubHTTPError, str(e), response) from e
+huggingface_hub.errors.HfHubHTTPError: Server error '504 Gateway Time-out' for url 'https://huggingface.co/api/datasets/EleutherAI/the_pile_deduplicated/tree/fcbfcfde4222cbb1acd1d33bad0be250ee14b1bb/data?recursive=true&expand=false' (Amz CF ID: LwZ7IQdEp96FRp18J9xvg1e-tvQX21utEu_HpVnadPY1zPtCeX3PsQ==)
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/504
+
+[1;34mwandb[0m: 
+[1;34mwandb[0m: 🚀 View run [33mcortex-5b[0m at: [34mhttps://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt/runs/oeaj6bhw[0m
+---------------------------------------
+Begin Slurm Epilog: Jun-20-2026 23:36:08
+Job ID:        10250583
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job5b_resume.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=00:29:52,vmem=0,walltime=00:03:44,mem=4180768K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-01-006-3-0
+---------------------------------------

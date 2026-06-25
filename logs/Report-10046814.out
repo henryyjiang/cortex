@@ -1,0 +1,359 @@
+---------------------------------------
+Begin Slurm Prolog: Jun-17-2026 14:52:28
+Job ID:    10046814
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job5b.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading EleutherAI/pythia-160m ...
+Params: 164,095,488 total, 164,095,488 trainable
+Arch: cortex (training_mode=cortex)
+Layer split: Pre=3, Loop=6, Coda=3
+mu_rec=8, mu_bwd=4 (= ceil(8/2))
+Effective batch: 32768 tokens = 16 seqs x 2048 tok
+Grad accum: 1 | Cross-chunks: 4 | World size: 1
+Max steps: 38,146 | Warmup: 381 | Cooldown: 3814
+Curriculum: mu_rec ramps 1->8 over 3800 steps
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /storage/home/hcoda1/3/hjiang420/.netrc.
+wandb: Currently logged in as: henryyjiang42 (henryyjiang42-georgia-institute-of-technology) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+wandb: setting up run 7ag2zqea
+wandb: Tracking run with wandb version 0.27.0
+wandb: Run data is saved locally in runs/cortex-5b/wandb/run-20260617_145431-7ag2zqea
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run cortex-5b
+wandb: ⭐️ View project at https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt
+wandb: 🚀 View run at https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt/runs/7ag2zqea
+step=    10 | loss=11.0065 | lr=7.09e-06 | wd=0.1000 | mom=0.8530 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=4.344 | tok/s=9,066 | tokens=0.00B
+step=    20 | loss=10.9689 | lr=1.50e-05 | wd=0.1000 | mom=0.8563 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=3.328 | tok/s=58,233 | tokens=0.00B
+step=    30 | loss=10.8893 | lr=2.28e-05 | wd=0.0999 | mom=0.8597 | T=2.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=5.406 | tok/s=58,317 | tokens=0.00B
+step=    40 | loss=10.7818 | lr=3.07e-05 | wd=0.0999 | mom=0.8630 | T=1.2 k=1.0 (mu_rec=1 mu_bwd=1) | grad=3.719 | tok/s=59,963 | tokens=0.00B
+step=    50 | loss=10.6267 | lr=3.86e-05 | wd=0.0999 | mom=0.8663 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=4.344 | tok/s=58,177 | tokens=0.00B
+step=    60 | loss=10.4156 | lr=4.65e-05 | wd=0.0998 | mom=0.8697 | T=1.2 k=1.0 (mu_rec=1 mu_bwd=1) | grad=3.438 | tok/s=58,194 | tokens=0.00B
+step=    70 | loss=10.1939 | lr=5.43e-05 | wd=0.0998 | mom=0.8730 | T=1.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=3.062 | tok/s=57,791 | tokens=0.00B
+step=    80 | loss=10.0487 | lr=6.22e-05 | wd=0.0998 | mom=0.8763 | T=1.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=3.078 | tok/s=54,717 | tokens=0.00B
+step=    90 | loss=9.6789 | lr=7.01e-05 | wd=0.0998 | mom=0.8797 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=3.203 | tok/s=57,408 | tokens=0.00B
+step=   100 | loss=9.2027 | lr=7.80e-05 | wd=0.0997 | mom=0.8830 | T=1.2 k=1.0 (mu_rec=1 mu_bwd=1) | grad=2.516 | tok/s=56,659 | tokens=0.00B
+step=   110 | loss=8.8424 | lr=8.58e-05 | wd=0.0997 | mom=0.8863 | T=1.2 k=1.0 (mu_rec=1 mu_bwd=1) | grad=2.031 | tok/s=57,039 | tokens=0.00B
+step=   120 | loss=8.5109 | lr=9.37e-05 | wd=0.0997 | mom=0.8897 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.977 | tok/s=56,842 | tokens=0.00B
+step=   130 | loss=8.3962 | lr=1.02e-04 | wd=0.0997 | mom=0.8930 | T=2.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=6.469 | tok/s=56,999 | tokens=0.00B
+step=   140 | loss=8.0510 | lr=1.09e-04 | wd=0.0996 | mom=0.8963 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=2.422 | tok/s=58,169 | tokens=0.00B
+step=   150 | loss=7.9346 | lr=1.17e-04 | wd=0.0996 | mom=0.8997 | T=2.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.891 | tok/s=55,372 | tokens=0.00B
+step=   160 | loss=7.9078 | lr=1.25e-04 | wd=0.0996 | mom=0.9030 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.062 | tok/s=57,781 | tokens=0.01B
+step=   170 | loss=7.7509 | lr=1.33e-04 | wd=0.0996 | mom=0.9063 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.664 | tok/s=56,626 | tokens=0.01B
+step=   180 | loss=7.5469 | lr=1.41e-04 | wd=0.0995 | mom=0.9097 | T=1.2 k=1.0 (mu_rec=1 mu_bwd=1) | grad=0.941 | tok/s=55,326 | tokens=0.01B
+step=   190 | loss=7.5182 | lr=1.49e-04 | wd=0.0995 | mom=0.9130 | T=1.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=0.926 | tok/s=57,604 | tokens=0.01B
+step=   200 | loss=7.4343 | lr=1.57e-04 | wd=0.0995 | mom=0.9163 | T=1.2 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.047 | tok/s=58,037 | tokens=0.01B
+step=   210 | loss=7.4637 | lr=1.65e-04 | wd=0.0995 | mom=0.9197 | T=1.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.180 | tok/s=57,928 | tokens=0.01B
+step=   220 | loss=7.4197 | lr=1.72e-04 | wd=0.0994 | mom=0.9230 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.523 | tok/s=57,694 | tokens=0.01B
+step=   230 | loss=7.2946 | lr=1.80e-04 | wd=0.0994 | mom=0.9263 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=0.879 | tok/s=56,372 | tokens=0.01B
+step=   240 | loss=7.3059 | lr=1.88e-04 | wd=0.0994 | mom=0.9297 | T=2.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=3.422 | tok/s=58,077 | tokens=0.01B
+step=   250 | loss=7.2070 | lr=1.96e-04 | wd=0.0993 | mom=0.9330 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.062 | tok/s=54,966 | tokens=0.01B
+step=   260 | loss=7.0770 | lr=2.04e-04 | wd=0.0993 | mom=0.9363 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=3.062 | tok/s=56,300 | tokens=0.01B
+step=   270 | loss=7.4460 | lr=2.12e-04 | wd=0.0993 | mom=0.9397 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=0.793 | tok/s=56,141 | tokens=0.01B
+step=   280 | loss=6.9791 | lr=2.20e-04 | wd=0.0993 | mom=0.9430 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.891 | tok/s=52,929 | tokens=0.01B
+step=   290 | loss=6.8629 | lr=2.28e-04 | wd=0.0992 | mom=0.9463 | T=2.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.906 | tok/s=51,806 | tokens=0.01B
+step=   300 | loss=6.7311 | lr=2.35e-04 | wd=0.0992 | mom=0.9497 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.949 | tok/s=53,340 | tokens=0.01B
+step=   310 | loss=7.0224 | lr=2.43e-04 | wd=0.0992 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.422 | tok/s=50,238 | tokens=0.01B
+step=   320 | loss=6.6775 | lr=2.51e-04 | wd=0.0992 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.484 | tok/s=54,772 | tokens=0.01B
+step=   330 | loss=6.8126 | lr=2.59e-04 | wd=0.0991 | mom=0.9500 | T=2.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.242 | tok/s=53,850 | tokens=0.01B
+step=   340 | loss=6.8207 | lr=2.67e-04 | wd=0.0991 | mom=0.9500 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.492 | tok/s=50,342 | tokens=0.01B
+step=   350 | loss=6.4689 | lr=2.75e-04 | wd=0.0991 | mom=0.9500 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.148 | tok/s=53,887 | tokens=0.01B
+step=   360 | loss=6.5529 | lr=2.83e-04 | wd=0.0991 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.195 | tok/s=51,460 | tokens=0.01B
+step=   370 | loss=6.4614 | lr=2.91e-04 | wd=0.0990 | mom=0.9500 | T=2.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.289 | tok/s=51,157 | tokens=0.01B
+step=   380 | loss=6.4982 | lr=2.98e-04 | wd=0.0990 | mom=0.9500 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.555 | tok/s=51,655 | tokens=0.01B
+step=   390 | loss=6.6272 | lr=3.00e-04 | wd=0.0990 | mom=0.9500 | T=3.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.320 | tok/s=50,416 | tokens=0.01B
+step=   400 | loss=6.8870 | lr=3.00e-04 | wd=0.0990 | mom=0.9500 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.492 | tok/s=53,046 | tokens=0.01B
+step=   410 | loss=6.6525 | lr=3.00e-04 | wd=0.0989 | mom=0.9500 | T=1.8 k=1.0 (mu_rec=2 mu_bwd=1) | grad=2.859 | tok/s=51,037 | tokens=0.01B
+step=   420 | loss=6.7410 | lr=3.00e-04 | wd=0.0989 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.289 | tok/s=53,068 | tokens=0.01B
+step=   430 | loss=7.6601 | lr=3.00e-04 | wd=0.0989 | mom=0.9500 | T=2.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=3.906 | tok/s=53,479 | tokens=0.01B
+step=   440 | loss=6.6225 | lr=3.00e-04 | wd=0.0988 | mom=0.9500 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.992 | tok/s=51,299 | tokens=0.01B
+step=   450 | loss=6.6980 | lr=3.00e-04 | wd=0.0988 | mom=0.9500 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=4.562 | tok/s=51,551 | tokens=0.01B
+step=   460 | loss=6.3929 | lr=3.00e-04 | wd=0.0988 | mom=0.9500 | T=2.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=3.141 | tok/s=53,272 | tokens=0.02B
+step=   470 | loss=6.5705 | lr=3.00e-04 | wd=0.0988 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=2.438 | tok/s=49,264 | tokens=0.02B
+step=   480 | loss=6.7873 | lr=3.00e-04 | wd=0.0987 | mom=0.9500 | T=3.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=2.359 | tok/s=51,316 | tokens=0.02B
+step=   490 | loss=6.5629 | lr=3.00e-04 | wd=0.0987 | mom=0.9500 | T=3.8 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.359 | tok/s=52,364 | tokens=0.02B
+step=   500 | loss=6.3734 | lr=3.00e-04 | wd=0.0987 | mom=0.9500 | T=2.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.188 | tok/s=51,945 | tokens=0.02B
+step=   510 | loss=6.3192 | lr=3.00e-04 | wd=0.0987 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.945 | tok/s=52,810 | tokens=0.02B
+step=   520 | loss=6.8468 | lr=3.00e-04 | wd=0.0986 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.148 | tok/s=51,466 | tokens=0.02B
+step=   530 | loss=6.3993 | lr=3.00e-04 | wd=0.0986 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.840 | tok/s=55,241 | tokens=0.02B
+step=   540 | loss=6.1386 | lr=3.00e-04 | wd=0.0986 | mom=0.9500 | T=2.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.562 | tok/s=52,268 | tokens=0.02B
+step=   550 | loss=6.3320 | lr=3.00e-04 | wd=0.0986 | mom=0.9500 | T=2.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.945 | tok/s=51,847 | tokens=0.02B
+step=   560 | loss=7.2312 | lr=3.00e-04 | wd=0.0985 | mom=0.9500 | T=3.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.547 | tok/s=51,091 | tokens=0.02B
+step=   570 | loss=7.4848 | lr=3.00e-04 | wd=0.0985 | mom=0.9500 | T=1.8 k=1.0 (mu_rec=2 mu_bwd=1) | grad=2.188 | tok/s=52,606 | tokens=0.02B
+step=   580 | loss=6.4174 | lr=3.00e-04 | wd=0.0985 | mom=0.9500 | T=2.8 k=1.0 (mu_rec=2 mu_bwd=1) | grad=5.531 | tok/s=51,711 | tokens=0.02B
+step=   590 | loss=6.2105 | lr=3.00e-04 | wd=0.0985 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.102 | tok/s=50,499 | tokens=0.02B
+step=   600 | loss=6.2356 | lr=3.00e-04 | wd=0.0984 | mom=0.9500 | T=3.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.500 | tok/s=50,314 | tokens=0.02B
+step=   610 | loss=6.3551 | lr=3.00e-04 | wd=0.0984 | mom=0.9500 | T=2.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.918 | tok/s=51,956 | tokens=0.02B
+step=   620 | loss=6.2425 | lr=3.00e-04 | wd=0.0984 | mom=0.9500 | T=2.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=2.031 | tok/s=50,921 | tokens=0.02B
+step=   630 | loss=6.0382 | lr=3.00e-04 | wd=0.0984 | mom=0.9500 | T=2.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.281 | tok/s=53,120 | tokens=0.02B
+step=   640 | loss=6.3921 | lr=3.00e-04 | wd=0.0983 | mom=0.9500 | T=2.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.242 | tok/s=52,003 | tokens=0.02B
+step=   650 | loss=6.2285 | lr=3.00e-04 | wd=0.0983 | mom=0.9500 | T=5.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.117 | tok/s=52,488 | tokens=0.02B
+step=   660 | loss=6.1850 | lr=3.00e-04 | wd=0.0983 | mom=0.9500 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.039 | tok/s=52,314 | tokens=0.02B
+step=   670 | loss=6.2368 | lr=3.00e-04 | wd=0.0982 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.328 | tok/s=53,858 | tokens=0.02B
+step=   680 | loss=6.0634 | lr=3.00e-04 | wd=0.0982 | mom=0.9500 | T=3.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.773 | tok/s=52,190 | tokens=0.02B
+step=   690 | loss=6.2306 | lr=3.00e-04 | wd=0.0982 | mom=0.9500 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.438 | tok/s=55,470 | tokens=0.02B
+step=   700 | loss=6.2258 | lr=3.00e-04 | wd=0.0982 | mom=0.9500 | T=2.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.523 | tok/s=53,815 | tokens=0.02B
+step=   710 | loss=6.3824 | lr=3.00e-04 | wd=0.0981 | mom=0.9500 | T=4.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.855 | tok/s=51,114 | tokens=0.02B
+step=   720 | loss=6.0728 | lr=3.00e-04 | wd=0.0981 | mom=0.9500 | T=1.8 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.164 | tok/s=53,078 | tokens=0.02B
+step=   730 | loss=6.1004 | lr=3.00e-04 | wd=0.0981 | mom=0.9500 | T=3.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=2.203 | tok/s=48,744 | tokens=0.02B
+step=   740 | loss=6.2832 | lr=3.00e-04 | wd=0.0981 | mom=0.9500 | T=1.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=2.375 | tok/s=52,074 | tokens=0.02B
+step=   750 | loss=6.2162 | lr=3.00e-04 | wd=0.0980 | mom=0.9500 | T=1.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.000 | tok/s=52,131 | tokens=0.02B
+step=   760 | loss=5.8040 | lr=3.00e-04 | wd=0.0980 | mom=0.9500 | T=3.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.695 | tok/s=50,567 | tokens=0.02B
+step=   770 | loss=6.1700 | lr=3.00e-04 | wd=0.0980 | mom=0.9500 | T=4.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.844 | tok/s=49,465 | tokens=0.03B
+step=   780 | loss=6.3330 | lr=3.00e-04 | wd=0.0980 | mom=0.9500 | T=2.5 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.992 | tok/s=52,823 | tokens=0.03B
+step=   790 | loss=6.1537 | lr=3.00e-04 | wd=0.0979 | mom=0.9500 | T=1.8 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.211 | tok/s=51,047 | tokens=0.03B
+step=   800 | loss=6.2082 | lr=3.00e-04 | wd=0.0979 | mom=0.9500 | T=2.8 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.211 | tok/s=51,496 | tokens=0.03B
+step=   810 | loss=6.0860 | lr=3.00e-04 | wd=0.0979 | mom=0.9500 | T=1.0 k=1.0 (mu_rec=2 mu_bwd=1) | grad=4.500 | tok/s=56,162 | tokens=0.03B
+step=   820 | loss=6.1426 | lr=3.00e-04 | wd=0.0979 | mom=0.9500 | T=3.0 k=1.8 (mu_rec=3 mu_bwd=2) | grad=0.953 | tok/s=44,663 | tokens=0.03B
+step=   830 | loss=5.9679 | lr=3.00e-04 | wd=0.0978 | mom=0.9500 | T=3.0 k=1.2 (mu_rec=3 mu_bwd=2) | grad=1.234 | tok/s=39,995 | tokens=0.03B
+step=   840 | loss=5.9829 | lr=3.00e-04 | wd=0.0978 | mom=0.9500 | T=1.5 k=1.5 (mu_rec=3 mu_bwd=2) | grad=2.969 | tok/s=6,648 | tokens=0.03B
+step=   850 | loss=6.1209 | lr=3.00e-04 | wd=0.0978 | mom=0.9500 | T=4.2 k=2.0 (mu_rec=3 mu_bwd=2) | grad=2.438 | tok/s=41,170 | tokens=0.03B
+step=   860 | loss=5.8313 | lr=3.00e-04 | wd=0.0977 | mom=0.9500 | T=2.5 k=1.5 (mu_rec=3 mu_bwd=2) | grad=1.766 | tok/s=42,957 | tokens=0.03B
+step=   870 | loss=6.2010 | lr=3.00e-04 | wd=0.0977 | mom=0.9500 | T=3.2 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.727 | tok/s=39,743 | tokens=0.03B
+step=   880 | loss=6.1439 | lr=3.00e-04 | wd=0.0977 | mom=0.9500 | T=2.5 k=1.5 (mu_rec=3 mu_bwd=2) | grad=1.711 | tok/s=39,454 | tokens=0.03B
+step=   890 | loss=6.1949 | lr=3.00e-04 | wd=0.0977 | mom=0.9500 | T=3.2 k=1.5 (mu_rec=3 mu_bwd=2) | grad=1.359 | tok/s=40,834 | tokens=0.03B
+step=   900 | loss=5.8933 | lr=3.00e-04 | wd=0.0976 | mom=0.9500 | T=3.2 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.133 | tok/s=40,086 | tokens=0.03B
+step=   910 | loss=6.1405 | lr=3.00e-04 | wd=0.0976 | mom=0.9500 | T=3.2 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.016 | tok/s=42,084 | tokens=0.03B
+step=   920 | loss=6.2016 | lr=3.00e-04 | wd=0.0976 | mom=0.9500 | T=4.5 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.102 | tok/s=41,937 | tokens=0.03B
+step=   930 | loss=6.1707 | lr=3.00e-04 | wd=0.0976 | mom=0.9500 | T=2.8 k=1.5 (mu_rec=3 mu_bwd=2) | grad=2.125 | tok/s=41,687 | tokens=0.03B
+step=   940 | loss=5.9531 | lr=3.00e-04 | wd=0.0975 | mom=0.9500 | T=2.5 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.695 | tok/s=39,939 | tokens=0.03B
+step=   950 | loss=5.9061 | lr=3.00e-04 | wd=0.0975 | mom=0.9500 | T=1.8 k=1.5 (mu_rec=3 mu_bwd=2) | grad=2.781 | tok/s=40,809 | tokens=0.03B
+step=   960 | loss=6.0305 | lr=3.00e-04 | wd=0.0975 | mom=0.9500 | T=3.8 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.125 | tok/s=39,341 | tokens=0.03B
+step=   970 | loss=6.0826 | lr=3.00e-04 | wd=0.0975 | mom=0.9500 | T=1.5 k=1.2 (mu_rec=3 mu_bwd=2) | grad=2.266 | tok/s=42,026 | tokens=0.03B
+step=   980 | loss=5.7167 | lr=3.00e-04 | wd=0.0974 | mom=0.9500 | T=1.8 k=1.8 (mu_rec=3 mu_bwd=2) | grad=2.812 | tok/s=41,814 | tokens=0.03B
+step=   990 | loss=6.2263 | lr=3.00e-04 | wd=0.0974 | mom=0.9500 | T=2.2 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.445 | tok/s=40,265 | tokens=0.03B
+step=  1000 | loss=6.1071 | lr=3.00e-04 | wd=0.0974 | mom=0.9500 | T=3.8 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.594 | tok/s=37,497 | tokens=0.03B
+step=  1010 | loss=6.0440 | lr=3.00e-04 | wd=0.0974 | mom=0.9500 | T=1.5 k=1.5 (mu_rec=3 mu_bwd=2) | grad=1.953 | tok/s=39,227 | tokens=0.03B
+step=  1020 | loss=6.0056 | lr=3.00e-04 | wd=0.0973 | mom=0.9500 | T=2.2 k=1.8 (mu_rec=3 mu_bwd=2) | grad=2.047 | tok/s=38,624 | tokens=0.03B
+step=  1030 | loss=6.0034 | lr=3.00e-04 | wd=0.0973 | mom=0.9500 | T=2.8 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.445 | tok/s=41,374 | tokens=0.03B
+step=  1040 | loss=6.0989 | lr=3.00e-04 | wd=0.0973 | mom=0.9500 | T=2.2 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.680 | tok/s=43,700 | tokens=0.03B
+step=  1050 | loss=6.0659 | lr=3.00e-04 | wd=0.0973 | mom=0.9500 | T=4.0 k=1.8 (mu_rec=3 mu_bwd=2) | grad=0.945 | tok/s=40,786 | tokens=0.03B
+step=  1060 | loss=6.0386 | lr=3.00e-04 | wd=0.0972 | mom=0.9500 | T=2.0 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.109 | tok/s=40,921 | tokens=0.03B
+step=  1070 | loss=5.9862 | lr=3.00e-04 | wd=0.0972 | mom=0.9500 | T=2.8 k=2.0 (mu_rec=3 mu_bwd=2) | grad=2.984 | tok/s=38,833 | tokens=0.04B
+step=  1080 | loss=5.9135 | lr=3.00e-04 | wd=0.0972 | mom=0.9500 | T=3.2 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.477 | tok/s=37,658 | tokens=0.04B
+step=  1090 | loss=6.0694 | lr=3.00e-04 | wd=0.0971 | mom=0.9500 | T=3.0 k=1.5 (mu_rec=3 mu_bwd=2) | grad=2.281 | tok/s=40,383 | tokens=0.04B
+step=  1100 | loss=5.9715 | lr=3.00e-04 | wd=0.0971 | mom=0.9500 | T=2.2 k=1.5 (mu_rec=3 mu_bwd=2) | grad=1.633 | tok/s=41,587 | tokens=0.04B
+step=  1110 | loss=6.1559 | lr=3.00e-04 | wd=0.0971 | mom=0.9500 | T=3.2 k=1.2 (mu_rec=3 mu_bwd=2) | grad=2.656 | tok/s=44,591 | tokens=0.04B
+step=  1120 | loss=5.9546 | lr=3.00e-04 | wd=0.0971 | mom=0.9500 | T=3.5 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.531 | tok/s=39,296 | tokens=0.04B
+step=  1130 | loss=5.8084 | lr=3.00e-04 | wd=0.0970 | mom=0.9500 | T=2.5 k=1.8 (mu_rec=3 mu_bwd=2) | grad=2.719 | tok/s=39,775 | tokens=0.04B
+step=  1140 | loss=5.6637 | lr=3.00e-04 | wd=0.0970 | mom=0.9500 | T=2.0 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.812 | tok/s=42,414 | tokens=0.04B
+step=  1150 | loss=6.2316 | lr=3.00e-04 | wd=0.0970 | mom=0.9500 | T=2.0 k=1.5 (mu_rec=3 mu_bwd=2) | grad=1.727 | tok/s=40,736 | tokens=0.04B
+step=  1160 | loss=6.0613 | lr=3.00e-04 | wd=0.0970 | mom=0.9500 | T=3.8 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.609 | tok/s=41,472 | tokens=0.04B
+step=  1170 | loss=5.7730 | lr=3.00e-04 | wd=0.0969 | mom=0.9500 | T=2.8 k=1.5 (mu_rec=3 mu_bwd=2) | grad=2.469 | tok/s=40,022 | tokens=0.04B
+step=  1180 | loss=5.9424 | lr=3.00e-04 | wd=0.0969 | mom=0.9500 | T=5.2 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.250 | tok/s=41,247 | tokens=0.04B
+step=  1190 | loss=5.9126 | lr=3.00e-04 | wd=0.0969 | mom=0.9500 | T=4.0 k=1.5 (mu_rec=3 mu_bwd=2) | grad=1.438 | tok/s=40,677 | tokens=0.04B
+step=  1200 | loss=5.8894 | lr=3.00e-04 | wd=0.0969 | mom=0.9500 | T=2.8 k=2.0 (mu_rec=3 mu_bwd=2) | grad=0.977 | tok/s=42,786 | tokens=0.04B
+step=  1210 | loss=5.8962 | lr=3.00e-04 | wd=0.0968 | mom=0.9500 | T=4.2 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.102 | tok/s=39,054 | tokens=0.04B
+step=  1220 | loss=5.9689 | lr=3.00e-04 | wd=0.0968 | mom=0.9500 | T=2.0 k=1.2 (mu_rec=3 mu_bwd=2) | grad=1.562 | tok/s=40,177 | tokens=0.04B
+step=  1230 | loss=6.0619 | lr=3.00e-04 | wd=0.0968 | mom=0.9500 | T=2.5 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.266 | tok/s=40,243 | tokens=0.04B
+step=  1240 | loss=6.0560 | lr=3.00e-04 | wd=0.0968 | mom=0.9500 | T=4.2 k=1.8 (mu_rec=3 mu_bwd=2) | grad=2.203 | tok/s=39,653 | tokens=0.04B
+step=  1250 | loss=5.9783 | lr=3.00e-04 | wd=0.0967 | mom=0.9500 | T=3.2 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.297 | tok/s=39,875 | tokens=0.04B
+step=  1260 | loss=5.8760 | lr=3.00e-04 | wd=0.0967 | mom=0.9500 | T=2.5 k=1.5 (mu_rec=3 mu_bwd=2) | grad=1.680 | tok/s=43,430 | tokens=0.04B
+step=  1270 | loss=5.8503 | lr=3.00e-04 | wd=0.0967 | mom=0.9500 | T=3.0 k=1.5 (mu_rec=3 mu_bwd=2) | grad=0.836 | tok/s=40,472 | tokens=0.04B
+step=  1280 | loss=5.9127 | lr=3.00e-04 | wd=0.0966 | mom=0.9500 | T=5.0 k=1.8 (mu_rec=3 mu_bwd=2) | grad=1.500 | tok/s=40,144 | tokens=0.04B
+step=  1290 | loss=5.8732 | lr=3.00e-04 | wd=0.0966 | mom=0.9500 | T=2.5 k=1.8 (mu_rec=3 mu_bwd=2) | grad=2.438 | tok/s=42,129 | tokens=0.04B
+step=  1300 | loss=5.6938 | lr=3.00e-04 | wd=0.0966 | mom=0.9500 | T=2.8 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.625 | tok/s=41,267 | tokens=0.04B
+step=  1310 | loss=6.0291 | lr=3.00e-04 | wd=0.0966 | mom=0.9500 | T=2.2 k=1.5 (mu_rec=3 mu_bwd=2) | grad=4.062 | tok/s=41,713 | tokens=0.04B
+step=  1320 | loss=5.9867 | lr=3.00e-04 | wd=0.0965 | mom=0.9500 | T=1.5 k=1.2 (mu_rec=3 mu_bwd=2) | grad=1.172 | tok/s=43,484 | tokens=0.04B
+step=  1330 | loss=5.8326 | lr=3.00e-04 | wd=0.0965 | mom=0.9500 | T=2.0 k=1.5 (mu_rec=3 mu_bwd=2) | grad=1.539 | tok/s=40,156 | tokens=0.04B
+step=  1340 | loss=5.8432 | lr=3.00e-04 | wd=0.0965 | mom=0.9500 | T=2.5 k=1.5 (mu_rec=3 mu_bwd=2) | grad=2.062 | tok/s=41,344 | tokens=0.04B
+step=  1350 | loss=5.8937 | lr=3.00e-04 | wd=0.0965 | mom=0.9500 | T=3.2 k=2.0 (mu_rec=3 mu_bwd=2) | grad=1.219 | tok/s=41,196 | tokens=0.04B
+step=  1360 | loss=5.9233 | lr=3.00e-04 | wd=0.0964 | mom=0.9500 | T=4.8 k=2.0 (mu_rec=4 mu_bwd=2) | grad=2.141 | tok/s=39,742 | tokens=0.04B
+step=  1370 | loss=6.0566 | lr=3.00e-04 | wd=0.0964 | mom=0.9500 | T=6.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=0.906 | tok/s=35,074 | tokens=0.04B
+step=  1380 | loss=5.6852 | lr=3.00e-04 | wd=0.0964 | mom=0.9500 | T=2.2 k=1.8 (mu_rec=4 mu_bwd=2) | grad=3.562 | tok/s=38,483 | tokens=0.05B
+step=  1390 | loss=5.6519 | lr=3.00e-04 | wd=0.0964 | mom=0.9500 | T=3.2 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.148 | tok/s=38,156 | tokens=0.05B
+step=  1400 | loss=6.0014 | lr=3.00e-04 | wd=0.0963 | mom=0.9500 | T=2.8 k=1.2 (mu_rec=4 mu_bwd=2) | grad=1.367 | tok/s=38,420 | tokens=0.05B
+step=  1410 | loss=5.9179 | lr=3.00e-04 | wd=0.0963 | mom=0.9500 | T=3.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.578 | tok/s=36,671 | tokens=0.05B
+step=  1420 | loss=5.9590 | lr=3.00e-04 | wd=0.0963 | mom=0.9500 | T=5.5 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.336 | tok/s=37,710 | tokens=0.05B
+step=  1430 | loss=5.9673 | lr=3.00e-04 | wd=0.0963 | mom=0.9500 | T=2.2 k=1.5 (mu_rec=4 mu_bwd=2) | grad=2.906 | tok/s=35,439 | tokens=0.05B
+step=  1440 | loss=5.7751 | lr=3.00e-04 | wd=0.0962 | mom=0.9500 | T=4.8 k=1.8 (mu_rec=4 mu_bwd=2) | grad=2.594 | tok/s=35,575 | tokens=0.05B
+step=  1450 | loss=6.0634 | lr=3.00e-04 | wd=0.0962 | mom=0.9500 | T=5.5 k=2.0 (mu_rec=4 mu_bwd=2) | grad=2.625 | tok/s=36,646 | tokens=0.05B
+step=  1460 | loss=5.9084 | lr=3.00e-04 | wd=0.0962 | mom=0.9500 | T=2.8 k=1.5 (mu_rec=4 mu_bwd=2) | grad=3.266 | tok/s=38,583 | tokens=0.05B
+step=  1470 | loss=5.6450 | lr=3.00e-04 | wd=0.0961 | mom=0.9500 | T=5.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=2.125 | tok/s=36,400 | tokens=0.05B
+step=  1480 | loss=5.8911 | lr=3.00e-04 | wd=0.0961 | mom=0.9500 | T=1.2 k=1.2 (mu_rec=4 mu_bwd=2) | grad=2.188 | tok/s=41,006 | tokens=0.05B
+step=  1490 | loss=5.9227 | lr=3.00e-04 | wd=0.0961 | mom=0.9500 | T=3.5 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.820 | tok/s=37,840 | tokens=0.05B
+step=  1500 | loss=5.9604 | lr=3.00e-04 | wd=0.0961 | mom=0.9500 | T=7.2 k=2.0 (mu_rec=4 mu_bwd=2) | grad=2.828 | tok/s=36,831 | tokens=0.05B
+step=  1510 | loss=6.0866 | lr=3.00e-04 | wd=0.0960 | mom=0.9500 | T=2.8 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.648 | tok/s=38,751 | tokens=0.05B
+step=  1520 | loss=5.9789 | lr=3.00e-04 | wd=0.0960 | mom=0.9500 | T=2.8 k=1.5 (mu_rec=4 mu_bwd=2) | grad=1.242 | tok/s=37,449 | tokens=0.05B
+step=  1530 | loss=5.8335 | lr=3.00e-04 | wd=0.0960 | mom=0.9500 | T=5.8 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.156 | tok/s=38,271 | tokens=0.05B
+step=  1540 | loss=5.9213 | lr=3.00e-04 | wd=0.0960 | mom=0.9500 | T=5.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.242 | tok/s=37,196 | tokens=0.05B
+step=  1550 | loss=5.9536 | lr=3.00e-04 | wd=0.0959 | mom=0.9500 | T=5.5 k=2.0 (mu_rec=4 mu_bwd=2) | grad=2.688 | tok/s=35,416 | tokens=0.05B
+step=  1560 | loss=5.7913 | lr=3.00e-04 | wd=0.0959 | mom=0.9500 | T=3.0 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.234 | tok/s=38,414 | tokens=0.05B
+step=  1570 | loss=5.8774 | lr=3.00e-04 | wd=0.0959 | mom=0.9500 | T=2.8 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.805 | tok/s=36,616 | tokens=0.05B
+step=  1580 | loss=5.8353 | lr=3.00e-04 | wd=0.0959 | mom=0.9500 | T=1.0 k=1.0 (mu_rec=4 mu_bwd=2) | grad=1.922 | tok/s=37,579 | tokens=0.05B
+step=  1590 | loss=5.8594 | lr=3.00e-04 | wd=0.0958 | mom=0.9500 | T=4.0 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.422 | tok/s=35,231 | tokens=0.05B
+step=  1600 | loss=5.8115 | lr=3.00e-04 | wd=0.0958 | mom=0.9500 | T=4.2 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.508 | tok/s=36,374 | tokens=0.05B
+step=  1610 | loss=5.6721 | lr=3.00e-04 | wd=0.0958 | mom=0.9500 | T=4.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.883 | tok/s=37,761 | tokens=0.05B
+step=  1620 | loss=5.8160 | lr=3.00e-04 | wd=0.0958 | mom=0.9500 | T=4.2 k=1.8 (mu_rec=4 mu_bwd=2) | grad=2.500 | tok/s=38,491 | tokens=0.05B
+step=  1630 | loss=5.7698 | lr=3.00e-04 | wd=0.0957 | mom=0.9500 | T=4.2 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.594 | tok/s=39,146 | tokens=0.05B
+step=  1640 | loss=5.8070 | lr=3.00e-04 | wd=0.0957 | mom=0.9500 | T=2.5 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.188 | tok/s=38,276 | tokens=0.05B
+step=  1650 | loss=5.9083 | lr=3.00e-04 | wd=0.0957 | mom=0.9500 | T=4.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=0.934 | tok/s=36,815 | tokens=0.05B
+step=  1660 | loss=5.5997 | lr=3.00e-04 | wd=0.0957 | mom=0.9500 | T=4.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=2.125 | tok/s=37,292 | tokens=0.05B
+step=  1670 | loss=5.9031 | lr=3.00e-04 | wd=0.0956 | mom=0.9500 | T=3.0 k=1.8 (mu_rec=4 mu_bwd=2) | grad=3.328 | tok/s=11,733 | tokens=0.05B
+step=  1680 | loss=5.7427 | lr=3.00e-04 | wd=0.0956 | mom=0.9500 | T=3.5 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.508 | tok/s=35,956 | tokens=0.06B
+step=  1690 | loss=5.8714 | lr=3.00e-04 | wd=0.0956 | mom=0.9500 | T=2.2 k=1.5 (mu_rec=4 mu_bwd=2) | grad=1.867 | tok/s=10,833 | tokens=0.06B
+step=  1700 | loss=5.7729 | lr=3.00e-04 | wd=0.0955 | mom=0.9500 | T=3.0 k=1.8 (mu_rec=4 mu_bwd=2) | grad=2.469 | tok/s=36,823 | tokens=0.06B
+step=  1710 | loss=5.7122 | lr=3.00e-04 | wd=0.0955 | mom=0.9500 | T=4.2 k=2.0 (mu_rec=4 mu_bwd=2) | grad=2.062 | tok/s=37,867 | tokens=0.06B
+step=  1720 | loss=5.4943 | lr=3.00e-04 | wd=0.0955 | mom=0.9500 | T=5.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.414 | tok/s=36,549 | tokens=0.06B
+step=  1730 | loss=5.6926 | lr=3.00e-04 | wd=0.0955 | mom=0.9500 | T=4.0 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.766 | tok/s=35,459 | tokens=0.06B
+step=  1740 | loss=6.0982 | lr=3.00e-04 | wd=0.0954 | mom=0.9500 | T=6.8 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.289 | tok/s=38,103 | tokens=0.06B
+step=  1750 | loss=5.6203 | lr=3.00e-04 | wd=0.0954 | mom=0.9500 | T=9.5 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.805 | tok/s=35,258 | tokens=0.06B
+step=  1760 | loss=5.7751 | lr=3.00e-04 | wd=0.0954 | mom=0.9500 | T=3.5 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.172 | tok/s=38,830 | tokens=0.06B
+step=  1770 | loss=6.0027 | lr=3.00e-04 | wd=0.0954 | mom=0.9500 | T=5.2 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.281 | tok/s=38,247 | tokens=0.06B
+step=  1780 | loss=5.8988 | lr=3.00e-04 | wd=0.0953 | mom=0.9500 | T=2.5 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.359 | tok/s=35,443 | tokens=0.06B
+step=  1790 | loss=5.8861 | lr=3.00e-04 | wd=0.0953 | mom=0.9500 | T=4.0 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.141 | tok/s=35,511 | tokens=0.06B
+step=  1800 | loss=6.3061 | lr=3.00e-04 | wd=0.0953 | mom=0.9500 | T=2.2 k=1.8 (mu_rec=4 mu_bwd=2) | grad=2.406 | tok/s=37,957 | tokens=0.06B
+step=  1810 | loss=5.8734 | lr=3.00e-04 | wd=0.0953 | mom=0.9500 | T=5.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.977 | tok/s=34,845 | tokens=0.06B
+step=  1820 | loss=6.8943 | lr=3.00e-04 | wd=0.0952 | mom=0.9500 | T=5.8 k=2.0 (mu_rec=4 mu_bwd=2) | grad=0.965 | tok/s=35,932 | tokens=0.06B
+step=  1830 | loss=6.0030 | lr=3.00e-04 | wd=0.0952 | mom=0.9500 | T=5.8 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.648 | tok/s=36,794 | tokens=0.06B
+step=  1840 | loss=6.1213 | lr=3.00e-04 | wd=0.0952 | mom=0.9500 | T=5.0 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.867 | tok/s=34,432 | tokens=0.06B
+step=  1850 | loss=5.9771 | lr=3.00e-04 | wd=0.0952 | mom=0.9500 | T=3.0 k=1.8 (mu_rec=4 mu_bwd=2) | grad=0.898 | tok/s=38,801 | tokens=0.06B
+step=  1860 | loss=5.9159 | lr=3.00e-04 | wd=0.0951 | mom=0.9500 | T=4.8 k=1.8 (mu_rec=4 mu_bwd=2) | grad=3.797 | tok/s=36,275 | tokens=0.06B
+step=  1870 | loss=5.8565 | lr=3.00e-04 | wd=0.0951 | mom=0.9500 | T=3.8 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.656 | tok/s=37,231 | tokens=0.06B
+step=  1880 | loss=5.8494 | lr=3.00e-04 | wd=0.0951 | mom=0.9500 | T=3.2 k=1.5 (mu_rec=4 mu_bwd=2) | grad=1.164 | tok/s=39,406 | tokens=0.06B
+step=  1890 | loss=5.7983 | lr=3.00e-04 | wd=0.0950 | mom=0.9500 | T=3.0 k=1.8 (mu_rec=4 mu_bwd=2) | grad=1.047 | tok/s=37,380 | tokens=0.06B
+step=  1900 | loss=5.7483 | lr=3.00e-04 | wd=0.0950 | mom=0.9500 | T=3.2 k=2.0 (mu_rec=4 mu_bwd=2) | grad=1.289 | tok/s=35,500 | tokens=0.06B
+step=  1910 | loss=5.7328 | lr=3.00e-04 | wd=0.0950 | mom=0.9500 | T=3.8 k=2.5 (mu_rec=5 mu_bwd=3) | grad=1.406 | tok/s=31,689 | tokens=0.06B
+step=  1920 | loss=5.6686 | lr=3.00e-04 | wd=0.0950 | mom=0.9500 | T=4.0 k=2.8 (mu_rec=5 mu_bwd=3) | grad=2.891 | tok/s=33,440 | tokens=0.06B
+step=  1930 | loss=5.8123 | lr=3.00e-04 | wd=0.0949 | mom=0.9500 | T=6.0 k=3.0 (mu_rec=5 mu_bwd=3) | grad=0.992 | tok/s=32,017 | tokens=0.06B
+step=  1940 | loss=5.7508 | lr=3.00e-04 | wd=0.0949 | mom=0.9500 | T=5.2 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.664 | tok/s=30,571 | tokens=0.06B
+step=  1950 | loss=5.6177 | lr=3.00e-04 | wd=0.0949 | mom=0.9500 | T=3.2 k=2.5 (mu_rec=5 mu_bwd=3) | grad=1.758 | tok/s=32,376 | tokens=0.06B
+step=  1960 | loss=5.8556 | lr=3.00e-04 | wd=0.0949 | mom=0.9500 | T=4.2 k=2.5 (mu_rec=5 mu_bwd=3) | grad=1.344 | tok/s=31,627 | tokens=0.06B
+step=  1970 | loss=5.7169 | lr=3.00e-04 | wd=0.0948 | mom=0.9500 | T=7.0 k=2.5 (mu_rec=5 mu_bwd=3) | grad=2.953 | tok/s=29,150 | tokens=0.06B
+step=  1980 | loss=5.9136 | lr=3.00e-04 | wd=0.0948 | mom=0.9500 | T=4.8 k=2.5 (mu_rec=5 mu_bwd=3) | grad=2.125 | tok/s=31,198 | tokens=0.06B
+step=  1990 | loss=5.8309 | lr=3.00e-04 | wd=0.0948 | mom=0.9500 | T=5.2 k=2.8 (mu_rec=5 mu_bwd=3) | grad=3.672 | tok/s=30,709 | tokens=0.07B
+step=  2000 | loss=5.8519 | lr=3.00e-04 | wd=0.0948 | mom=0.9500 | T=4.2 k=2.2 (mu_rec=5 mu_bwd=3) | grad=1.156 | tok/s=29,619 | tokens=0.07B
+step=  2010 | loss=5.8171 | lr=3.00e-04 | wd=0.0947 | mom=0.9500 | T=6.2 k=2.5 (mu_rec=5 mu_bwd=3) | grad=1.219 | tok/s=30,120 | tokens=0.07B
+step=  2020 | loss=5.9528 | lr=3.00e-04 | wd=0.0947 | mom=0.9500 | T=6.8 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.375 | tok/s=32,141 | tokens=0.07B
+step=  2030 | loss=6.0092 | lr=3.00e-04 | wd=0.0947 | mom=0.9500 | T=5.0 k=2.5 (mu_rec=5 mu_bwd=3) | grad=1.773 | tok/s=32,579 | tokens=0.07B
+step=  2040 | loss=5.8754 | lr=3.00e-04 | wd=0.0947 | mom=0.9500 | T=5.2 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.148 | tok/s=31,227 | tokens=0.07B
+step=  2050 | loss=5.8655 | lr=3.00e-04 | wd=0.0946 | mom=0.9500 | T=5.0 k=3.0 (mu_rec=5 mu_bwd=3) | grad=5.750 | tok/s=30,629 | tokens=0.07B
+step=  2060 | loss=5.7905 | lr=3.00e-04 | wd=0.0946 | mom=0.9500 | T=3.5 k=2.0 (mu_rec=5 mu_bwd=3) | grad=1.312 | tok/s=29,925 | tokens=0.07B
+step=  2070 | loss=5.9741 | lr=3.00e-04 | wd=0.0946 | mom=0.9500 | T=2.8 k=2.0 (mu_rec=5 mu_bwd=3) | grad=1.797 | tok/s=31,854 | tokens=0.07B
+step=  2080 | loss=5.7186 | lr=3.00e-04 | wd=0.0945 | mom=0.9500 | T=6.0 k=2.5 (mu_rec=5 mu_bwd=3) | grad=2.797 | tok/s=31,072 | tokens=0.07B
+step=  2090 | loss=5.7595 | lr=3.00e-04 | wd=0.0945 | mom=0.9500 | T=4.2 k=2.5 (mu_rec=5 mu_bwd=3) | grad=1.078 | tok/s=29,558 | tokens=0.07B
+step=  2100 | loss=5.8312 | lr=3.00e-04 | wd=0.0945 | mom=0.9500 | T=1.8 k=1.8 (mu_rec=5 mu_bwd=3) | grad=1.602 | tok/s=30,279 | tokens=0.07B
+step=  2110 | loss=5.9075 | lr=3.00e-04 | wd=0.0945 | mom=0.9500 | T=7.8 k=3.0 (mu_rec=5 mu_bwd=3) | grad=7.875 | tok/s=29,366 | tokens=0.07B
+step=  2120 | loss=5.7428 | lr=3.00e-04 | wd=0.0944 | mom=0.9500 | T=4.8 k=2.8 (mu_rec=5 mu_bwd=3) | grad=0.934 | tok/s=31,640 | tokens=0.07B
+step=  2130 | loss=5.7530 | lr=3.00e-04 | wd=0.0944 | mom=0.9500 | T=3.8 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.023 | tok/s=30,178 | tokens=0.07B
+step=  2140 | loss=5.7700 | lr=3.00e-04 | wd=0.0944 | mom=0.9500 | T=6.0 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.484 | tok/s=29,961 | tokens=0.07B
+step=  2150 | loss=5.7486 | lr=3.00e-04 | wd=0.0944 | mom=0.9500 | T=5.8 k=2.5 (mu_rec=5 mu_bwd=3) | grad=5.125 | tok/s=31,685 | tokens=0.07B
+step=  2160 | loss=5.8001 | lr=3.00e-04 | wd=0.0943 | mom=0.9500 | T=5.2 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.094 | tok/s=30,655 | tokens=0.07B
+step=  2170 | loss=5.7955 | lr=3.00e-04 | wd=0.0943 | mom=0.9500 | T=4.0 k=2.5 (mu_rec=5 mu_bwd=3) | grad=1.859 | tok/s=31,063 | tokens=0.07B
+step=  2180 | loss=5.7886 | lr=3.00e-04 | wd=0.0943 | mom=0.9500 | T=3.8 k=2.8 (mu_rec=5 mu_bwd=3) | grad=2.797 | tok/s=29,005 | tokens=0.07B
+step=  2190 | loss=5.6682 | lr=3.00e-04 | wd=0.0943 | mom=0.9500 | T=4.5 k=2.5 (mu_rec=5 mu_bwd=3) | grad=2.953 | tok/s=29,815 | tokens=0.07B
+step=  2200 | loss=5.7971 | lr=3.00e-04 | wd=0.0942 | mom=0.9500 | T=3.5 k=2.8 (mu_rec=5 mu_bwd=3) | grad=1.797 | tok/s=32,941 | tokens=0.07B
+step=  2210 | loss=5.6678 | lr=3.00e-04 | wd=0.0942 | mom=0.9500 | T=3.5 k=2.8 (mu_rec=5 mu_bwd=3) | grad=2.109 | tok/s=32,731 | tokens=0.07B
+step=  2220 | loss=5.5425 | lr=3.00e-04 | wd=0.0942 | mom=0.9500 | T=4.5 k=2.2 (mu_rec=5 mu_bwd=3) | grad=1.305 | tok/s=29,379 | tokens=0.07B
+step=  2230 | loss=5.4322 | lr=3.00e-04 | wd=0.0942 | mom=0.9500 | T=7.8 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.820 | tok/s=29,434 | tokens=0.07B
+step=  2240 | loss=5.9036 | lr=3.00e-04 | wd=0.0941 | mom=0.9500 | T=5.2 k=2.5 (mu_rec=5 mu_bwd=3) | grad=2.156 | tok/s=32,102 | tokens=0.07B
+step=  2250 | loss=5.6860 | lr=3.00e-04 | wd=0.0941 | mom=0.9500 | T=2.8 k=2.5 (mu_rec=5 mu_bwd=3) | grad=2.828 | tok/s=31,940 | tokens=0.07B
+step=  2260 | loss=5.7169 | lr=3.00e-04 | wd=0.0941 | mom=0.9500 | T=1.5 k=1.5 (mu_rec=5 mu_bwd=3) | grad=2.359 | tok/s=31,472 | tokens=0.07B
+step=  2270 | loss=5.8358 | lr=3.00e-04 | wd=0.0941 | mom=0.9500 | T=9.2 k=3.0 (mu_rec=5 mu_bwd=3) | grad=2.016 | tok/s=30,843 | tokens=0.07B
+step=  2280 | loss=5.8720 | lr=3.00e-04 | wd=0.0940 | mom=0.9500 | T=4.5 k=2.8 (mu_rec=5 mu_bwd=3) | grad=3.484 | tok/s=30,606 | tokens=0.07B
+step=  2290 | loss=6.0050 | lr=3.00e-04 | wd=0.0940 | mom=0.9500 | T=3.2 k=2.0 (mu_rec=5 mu_bwd=3) | grad=2.969 | tok/s=31,867 | tokens=0.08B
+step=  2300 | loss=6.2878 | lr=3.00e-04 | wd=0.0940 | mom=0.9500 | T=9.8 k=3.0 (mu_rec=5 mu_bwd=3) | grad=2.359 | tok/s=31,690 | tokens=0.08B
+step=  2310 | loss=6.0706 | lr=3.00e-04 | wd=0.0939 | mom=0.9500 | T=4.8 k=2.8 (mu_rec=5 mu_bwd=3) | grad=2.094 | tok/s=31,029 | tokens=0.08B
+step=  2320 | loss=5.9070 | lr=3.00e-04 | wd=0.0939 | mom=0.9500 | T=6.5 k=3.0 (mu_rec=5 mu_bwd=3) | grad=2.859 | tok/s=29,559 | tokens=0.08B
+step=  2330 | loss=5.8409 | lr=3.00e-04 | wd=0.0939 | mom=0.9500 | T=5.5 k=2.2 (mu_rec=5 mu_bwd=3) | grad=1.773 | tok/s=30,577 | tokens=0.08B
+step=  2340 | loss=5.6830 | lr=3.00e-04 | wd=0.0939 | mom=0.9500 | T=6.8 k=3.0 (mu_rec=5 mu_bwd=3) | grad=2.172 | tok/s=29,446 | tokens=0.08B
+step=  2350 | loss=5.8965 | lr=3.00e-04 | wd=0.0938 | mom=0.9500 | T=5.0 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.336 | tok/s=31,445 | tokens=0.08B
+step=  2360 | loss=5.6928 | lr=3.00e-04 | wd=0.0938 | mom=0.9500 | T=4.2 k=2.5 (mu_rec=5 mu_bwd=3) | grad=2.906 | tok/s=29,689 | tokens=0.08B
+step=  2370 | loss=5.6402 | lr=3.00e-04 | wd=0.0938 | mom=0.9500 | T=6.5 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.406 | tok/s=30,207 | tokens=0.08B
+step=  2380 | loss=5.8027 | lr=3.00e-04 | wd=0.0938 | mom=0.9500 | T=3.0 k=2.2 (mu_rec=5 mu_bwd=3) | grad=1.578 | tok/s=29,489 | tokens=0.08B
+step=  2390 | loss=5.7714 | lr=3.00e-04 | wd=0.0937 | mom=0.9500 | T=4.0 k=2.5 (mu_rec=5 mu_bwd=3) | grad=1.438 | tok/s=31,624 | tokens=0.08B
+step=  2400 | loss=5.6992 | lr=3.00e-04 | wd=0.0937 | mom=0.9500 | T=3.0 k=2.0 (mu_rec=5 mu_bwd=3) | grad=1.344 | tok/s=30,109 | tokens=0.08B
+step=  2410 | loss=5.6792 | lr=3.00e-04 | wd=0.0937 | mom=0.9500 | T=10.8 k=3.0 (mu_rec=5 mu_bwd=3) | grad=1.352 | tok/s=28,479 | tokens=0.08B
+step=  2420 | loss=5.5945 | lr=3.00e-04 | wd=0.0937 | mom=0.9500 | T=4.5 k=2.0 (mu_rec=5 mu_bwd=3) | grad=3.891 | tok/s=32,284 | tokens=0.08B
+step=  2430 | loss=5.7456 | lr=3.00e-04 | wd=0.0936 | mom=0.9500 | T=3.0 k=2.2 (mu_rec=5 mu_bwd=3) | grad=1.094 | tok/s=34,400 | tokens=0.08B
+step=  2440 | loss=5.7447 | lr=3.00e-04 | wd=0.0936 | mom=0.9500 | T=3.0 k=2.5 (mu_rec=5 mu_bwd=3) | grad=1.398 | tok/s=30,804 | tokens=0.08B
+step=  2450 | loss=5.9642 | lr=3.00e-04 | wd=0.0936 | mom=0.9500 | T=4.5 k=2.5 (mu_rec=6 mu_bwd=3) | grad=3.562 | tok/s=28,706 | tokens=0.08B
+step=  2460 | loss=5.6482 | lr=3.00e-04 | wd=0.0936 | mom=0.9500 | T=6.5 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.078 | tok/s=26,626 | tokens=0.08B
+step=  2470 | loss=5.7114 | lr=3.00e-04 | wd=0.0935 | mom=0.9500 | T=4.8 k=2.5 (mu_rec=6 mu_bwd=3) | grad=2.562 | tok/s=29,075 | tokens=0.08B
+step=  2480 | loss=5.6581 | lr=3.00e-04 | wd=0.0935 | mom=0.9500 | T=5.5 k=2.8 (mu_rec=6 mu_bwd=3) | grad=1.961 | tok/s=28,284 | tokens=0.08B
+step=  2490 | loss=5.6108 | lr=3.00e-04 | wd=0.0935 | mom=0.9500 | T=7.2 k=2.8 (mu_rec=6 mu_bwd=3) | grad=1.312 | tok/s=10,292 | tokens=0.08B
+step=  2500 | loss=5.8580 | lr=3.00e-04 | wd=0.0934 | mom=0.9500 | T=5.8 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.398 | tok/s=28,691 | tokens=0.08B
+step=  2510 | loss=5.7405 | lr=3.00e-04 | wd=0.0934 | mom=0.9500 | T=7.8 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.766 | tok/s=29,922 | tokens=0.08B
+step=  2520 | loss=5.7694 | lr=3.00e-04 | wd=0.0934 | mom=0.9500 | T=4.8 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.133 | tok/s=26,982 | tokens=0.08B
+step=  2530 | loss=5.7469 | lr=3.00e-04 | wd=0.0934 | mom=0.9500 | T=7.2 k=2.8 (mu_rec=6 mu_bwd=3) | grad=3.312 | tok/s=28,598 | tokens=0.08B
+step=  2540 | loss=5.6729 | lr=3.00e-04 | wd=0.0933 | mom=0.9500 | T=8.8 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.492 | tok/s=29,536 | tokens=0.08B
+step=  2550 | loss=5.9073 | lr=3.00e-04 | wd=0.0933 | mom=0.9500 | T=4.2 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.227 | tok/s=29,649 | tokens=0.08B
+step=  2560 | loss=5.7120 | lr=3.00e-04 | wd=0.0933 | mom=0.9500 | T=4.0 k=2.8 (mu_rec=6 mu_bwd=3) | grad=2.031 | tok/s=9,546 | tokens=0.08B
+step=  2570 | loss=5.8862 | lr=3.00e-04 | wd=0.0933 | mom=0.9500 | T=4.2 k=2.0 (mu_rec=6 mu_bwd=3) | grad=1.469 | tok/s=26,580 | tokens=0.08B
+step=  2580 | loss=5.6764 | lr=3.00e-04 | wd=0.0932 | mom=0.9500 | T=6.5 k=2.5 (mu_rec=6 mu_bwd=3) | grad=2.172 | tok/s=30,194 | tokens=0.08B
+step=  2590 | loss=5.6274 | lr=3.00e-04 | wd=0.0932 | mom=0.9500 | T=4.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.375 | tok/s=27,944 | tokens=0.08B
+step=  2600 | loss=6.4125 | lr=3.00e-04 | wd=0.0932 | mom=0.9500 | T=4.8 k=2.8 (mu_rec=6 mu_bwd=3) | grad=4.906 | tok/s=30,185 | tokens=0.09B
+step=  2610 | loss=5.8768 | lr=3.00e-04 | wd=0.0932 | mom=0.9500 | T=4.8 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.188 | tok/s=28,609 | tokens=0.09B
+step=  2620 | loss=5.6160 | lr=3.00e-04 | wd=0.0931 | mom=0.9500 | T=9.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.531 | tok/s=29,212 | tokens=0.09B
+step=  2630 | loss=5.7187 | lr=3.00e-04 | wd=0.0931 | mom=0.9500 | T=11.8 k=2.8 (mu_rec=6 mu_bwd=3) | grad=3.562 | tok/s=26,889 | tokens=0.09B
+step=  2640 | loss=5.6828 | lr=3.00e-04 | wd=0.0931 | mom=0.9500 | T=4.2 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.852 | tok/s=27,357 | tokens=0.09B
+step=  2650 | loss=5.5039 | lr=3.00e-04 | wd=0.0931 | mom=0.9500 | T=9.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=7.875 | tok/s=26,632 | tokens=0.09B
+step=  2660 | loss=5.5241 | lr=3.00e-04 | wd=0.0930 | mom=0.9500 | T=6.8 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.688 | tok/s=29,051 | tokens=0.09B
+step=  2670 | loss=5.7389 | lr=3.00e-04 | wd=0.0930 | mom=0.9500 | T=6.2 k=2.5 (mu_rec=6 mu_bwd=3) | grad=2.500 | tok/s=29,095 | tokens=0.09B
+step=  2680 | loss=5.7386 | lr=3.00e-04 | wd=0.0930 | mom=0.9500 | T=6.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.516 | tok/s=28,343 | tokens=0.09B
+step=  2690 | loss=5.5488 | lr=3.00e-04 | wd=0.0930 | mom=0.9500 | T=3.5 k=2.0 (mu_rec=6 mu_bwd=3) | grad=1.367 | tok/s=28,044 | tokens=0.09B
+step=  2700 | loss=5.7783 | lr=3.00e-04 | wd=0.0929 | mom=0.9500 | T=5.2 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.281 | tok/s=27,174 | tokens=0.09B
+step=  2710 | loss=5.9090 | lr=3.00e-04 | wd=0.0929 | mom=0.9500 | T=6.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.898 | tok/s=28,074 | tokens=0.09B
+step=  2720 | loss=5.6635 | lr=3.00e-04 | wd=0.0929 | mom=0.9500 | T=5.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.805 | tok/s=27,725 | tokens=0.09B
+step=  2730 | loss=5.6904 | lr=3.00e-04 | wd=0.0928 | mom=0.9500 | T=6.2 k=2.8 (mu_rec=6 mu_bwd=3) | grad=2.297 | tok/s=27,720 | tokens=0.09B
+step=  2740 | loss=5.8391 | lr=3.00e-04 | wd=0.0928 | mom=0.9500 | T=7.2 k=2.8 (mu_rec=6 mu_bwd=3) | grad=1.367 | tok/s=27,519 | tokens=0.09B
+step=  2750 | loss=5.6877 | lr=3.00e-04 | wd=0.0928 | mom=0.9500 | T=5.0 k=2.8 (mu_rec=6 mu_bwd=3) | grad=1.523 | tok/s=29,787 | tokens=0.09B
+step=  2760 | loss=5.7174 | lr=3.00e-04 | wd=0.0928 | mom=0.9500 | T=4.8 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.633 | tok/s=31,149 | tokens=0.09B
+step=  2770 | loss=5.6567 | lr=3.00e-04 | wd=0.0927 | mom=0.9500 | T=6.2 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.336 | tok/s=28,251 | tokens=0.09B
+step=  2780 | loss=5.8515 | lr=3.00e-04 | wd=0.0927 | mom=0.9500 | T=4.5 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.492 | tok/s=26,135 | tokens=0.09B
+step=  2790 | loss=5.7278 | lr=3.00e-04 | wd=0.0927 | mom=0.9500 | T=5.0 k=2.2 (mu_rec=6 mu_bwd=3) | grad=1.180 | tok/s=29,703 | tokens=0.09B
+step=  2800 | loss=5.8206 | lr=3.00e-04 | wd=0.0927 | mom=0.9500 | T=4.8 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.414 | tok/s=28,689 | tokens=0.09B
+step=  2810 | loss=7.0021 | lr=3.00e-04 | wd=0.0926 | mom=0.9500 | T=6.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=4.062 | tok/s=28,007 | tokens=0.09B
+step=  2820 | loss=5.8523 | lr=3.00e-04 | wd=0.0926 | mom=0.9500 | T=5.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=3.281 | tok/s=30,627 | tokens=0.09B
+step=  2830 | loss=5.7843 | lr=3.00e-04 | wd=0.0926 | mom=0.9500 | T=6.5 k=2.8 (mu_rec=6 mu_bwd=3) | grad=1.812 | tok/s=26,692 | tokens=0.09B
+step=  2840 | loss=6.5871 | lr=3.00e-04 | wd=0.0926 | mom=0.9500 | T=5.2 k=2.8 (mu_rec=6 mu_bwd=3) | grad=3.625 | tok/s=29,107 | tokens=0.09B
+step=  2850 | loss=6.7646 | lr=3.00e-04 | wd=0.0925 | mom=0.9500 | T=5.2 k=2.5 (mu_rec=6 mu_bwd=3) | grad=2.984 | tok/s=27,941 | tokens=0.09B
+step=  2860 | loss=6.2564 | lr=3.00e-04 | wd=0.0925 | mom=0.9500 | T=6.0 k=2.8 (mu_rec=6 mu_bwd=3) | grad=2.906 | tok/s=29,195 | tokens=0.09B
+step=  2870 | loss=5.9662 | lr=3.00e-04 | wd=0.0925 | mom=0.9500 | T=6.8 k=3.0 (mu_rec=6 mu_bwd=3) | grad=2.078 | tok/s=27,994 | tokens=0.09B
+step=  2880 | loss=5.8369 | lr=3.00e-04 | wd=0.0925 | mom=0.9500 | T=6.0 k=3.0 (mu_rec=6 mu_bwd=3) | grad=2.141 | tok/s=28,886 | tokens=0.09B
+step=  2890 | loss=5.7004 | lr=3.00e-04 | wd=0.0924 | mom=0.9500 | T=8.0 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.875 | tok/s=27,782 | tokens=0.09B
+step=  2900 | loss=5.8016 | lr=3.00e-04 | wd=0.0924 | mom=0.9500 | T=8.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.227 | tok/s=26,882 | tokens=0.10B
+step=  2910 | loss=5.6672 | lr=3.00e-04 | wd=0.0924 | mom=0.9500 | T=5.8 k=3.0 (mu_rec=6 mu_bwd=3) | grad=3.297 | tok/s=26,936 | tokens=0.10B
+step=  2920 | loss=5.6707 | lr=3.00e-04 | wd=0.0923 | mom=0.9500 | T=7.0 k=2.8 (mu_rec=6 mu_bwd=3) | grad=1.844 | tok/s=27,297 | tokens=0.10B
+step=  2930 | loss=5.8376 | lr=3.00e-04 | wd=0.0923 | mom=0.9500 | T=9.0 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.766 | tok/s=28,734 | tokens=0.10B
+step=  2940 | loss=5.7385 | lr=3.00e-04 | wd=0.0923 | mom=0.9500 | T=7.2 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.805 | tok/s=25,790 | tokens=0.10B
+step=  2950 | loss=5.8072 | lr=3.00e-04 | wd=0.0923 | mom=0.9500 | T=6.2 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.086 | tok/s=29,538 | tokens=0.10B
+step=  2960 | loss=5.7518 | lr=3.00e-04 | wd=0.0922 | mom=0.9500 | T=5.2 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.461 | tok/s=26,772 | tokens=0.10B
+step=  2970 | loss=5.5925 | lr=3.00e-04 | wd=0.0922 | mom=0.9500 | T=8.5 k=3.0 (mu_rec=6 mu_bwd=3) | grad=1.570 | tok/s=25,697 | tokens=0.10B
+step=  2980 | loss=5.6138 | lr=3.00e-04 | wd=0.0922 | mom=0.9500 | T=8.0 k=2.5 (mu_rec=6 mu_bwd=3) | grad=1.375 | tok/s=26,306 | tokens=0.10B
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/train.py", line 1000, in <module>
+    train(args)
+  File "/storage/home/hcoda1/3/hjiang420/cortex/train.py", line 874, in train
+    (micro_loss / grad_accum_steps).backward()
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/_tensor.py", line 581, in backward
+    torch.autograd.backward(
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+    _engine_run_backward(
+  File "/storage/home/hcoda1/3/hjiang420/.conda/envs/cortex/lib/python3.11/site-packages/torch/autograd/graph.py", line 825, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.54 GiB. GPU 0 has a total capacity of 39.49 GiB of which 744.56 MiB is free. Including non-PyTorch memory, this process has 38.76 GiB memory in use. Of the allocated memory 38.07 GiB is allocated by PyTorch, and 190.06 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[1;34mwandb[0m: 
+[1;34mwandb[0m: 🚀 View run [33mcortex-5b[0m at: [34mhttps://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt/runs/7ag2zqea[0m
+---------------------------------------
+Begin Slurm Epilog: Jun-17-2026 15:41:12
+Job ID:        10046814
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job5b.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=06:30:00,vmem=0,walltime=00:48:45,mem=5519508K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-02-018-35-0
+---------------------------------------

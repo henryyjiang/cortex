@@ -1,0 +1,364 @@
+{
+  "lambada": {
+    "correct": 224,
+    "total": 5153,
+    "accuracy": 0.04346982340384242
+  },
+  "blimp": {
+    "correct": 42799,
+    "total": 67000,
+    "accuracy": 0.6387910447761194,
+    "paradigms": {
+      "adjunct_island": {
+        "correct": 654,
+        "total": 1000,
+        "accuracy": 0.654
+      },
+      "anaphor_gender_agreement": {
+        "correct": 702,
+        "total": 1000,
+        "accuracy": 0.702
+      },
+      "anaphor_number_agreement": {
+        "correct": 840,
+        "total": 1000,
+        "accuracy": 0.84
+      },
+      "animate_subject_passive": {
+        "correct": 693,
+        "total": 1000,
+        "accuracy": 0.693
+      },
+      "animate_subject_trans": {
+        "correct": 716,
+        "total": 1000,
+        "accuracy": 0.716
+      },
+      "causative": {
+        "correct": 545,
+        "total": 1000,
+        "accuracy": 0.545
+      },
+      "complex_NP_island": {
+        "correct": 463,
+        "total": 1000,
+        "accuracy": 0.463
+      },
+      "coordinate_structure_constraint_complex_left_branch": {
+        "correct": 217,
+        "total": 1000,
+        "accuracy": 0.217
+      },
+      "coordinate_structure_constraint_object_extraction": {
+        "correct": 718,
+        "total": 1000,
+        "accuracy": 0.718
+      },
+      "determiner_noun_agreement_1": {
+        "correct": 874,
+        "total": 1000,
+        "accuracy": 0.874
+      },
+      "determiner_noun_agreement_2": {
+        "correct": 846,
+        "total": 1000,
+        "accuracy": 0.846
+      },
+      "determiner_noun_agreement_irregular_1": {
+        "correct": 693,
+        "total": 1000,
+        "accuracy": 0.693
+      },
+      "determiner_noun_agreement_irregular_2": {
+        "correct": 803,
+        "total": 1000,
+        "accuracy": 0.803
+      },
+      "determiner_noun_agreement_with_adj_2": {
+        "correct": 746,
+        "total": 1000,
+        "accuracy": 0.746
+      },
+      "determiner_noun_agreement_with_adj_irregular_1": {
+        "correct": 644,
+        "total": 1000,
+        "accuracy": 0.644
+      },
+      "determiner_noun_agreement_with_adj_irregular_2": {
+        "correct": 727,
+        "total": 1000,
+        "accuracy": 0.727
+      },
+      "determiner_noun_agreement_with_adjective_1": {
+        "correct": 764,
+        "total": 1000,
+        "accuracy": 0.764
+      },
+      "distractor_agreement_relational_noun": {
+        "correct": 219,
+        "total": 1000,
+        "accuracy": 0.219
+      },
+      "distractor_agreement_relative_clause": {
+        "correct": 225,
+        "total": 1000,
+        "accuracy": 0.225
+      },
+      "drop_argument": {
+        "correct": 723,
+        "total": 1000,
+        "accuracy": 0.723
+      },
+      "ellipsis_n_bar_1": {
+        "correct": 604,
+        "total": 1000,
+        "accuracy": 0.604
+      },
+      "ellipsis_n_bar_2": {
+        "correct": 719,
+        "total": 1000,
+        "accuracy": 0.719
+      },
+      "existential_there_object_raising": {
+        "correct": 785,
+        "total": 1000,
+        "accuracy": 0.785
+      },
+      "existential_there_quantifiers_1": {
+        "correct": 967,
+        "total": 1000,
+        "accuracy": 0.967
+      },
+      "existential_there_quantifiers_2": {
+        "correct": 604,
+        "total": 1000,
+        "accuracy": 0.604
+      },
+      "existential_there_subject_raising": {
+        "correct": 774,
+        "total": 1000,
+        "accuracy": 0.774
+      },
+      "expletive_it_object_raising": {
+        "correct": 702,
+        "total": 1000,
+        "accuracy": 0.702
+      },
+      "inchoative": {
+        "correct": 458,
+        "total": 1000,
+        "accuracy": 0.458
+      },
+      "intransitive": {
+        "correct": 615,
+        "total": 1000,
+        "accuracy": 0.615
+      },
+      "irregular_past_participle_adjectives": {
+        "correct": 916,
+        "total": 1000,
+        "accuracy": 0.916
+      },
+      "irregular_past_participle_verbs": {
+        "correct": 794,
+        "total": 1000,
+        "accuracy": 0.794
+      },
+      "irregular_plural_subject_verb_agreement_1": {
+        "correct": 749,
+        "total": 1000,
+        "accuracy": 0.749
+      },
+      "irregular_plural_subject_verb_agreement_2": {
+        "correct": 777,
+        "total": 1000,
+        "accuracy": 0.777
+      },
+      "left_branch_island_echo_question": {
+        "correct": 418,
+        "total": 1000,
+        "accuracy": 0.418
+      },
+      "left_branch_island_simple_question": {
+        "correct": 293,
+        "total": 1000,
+        "accuracy": 0.293
+      },
+      "matrix_question_npi_licensor_present": {
+        "correct": 195,
+        "total": 1000,
+        "accuracy": 0.195
+      },
+      "npi_present_1": {
+        "correct": 341,
+        "total": 1000,
+        "accuracy": 0.341
+      },
+      "npi_present_2": {
+        "correct": 427,
+        "total": 1000,
+        "accuracy": 0.427
+      },
+      "only_npi_licensor_present": {
+        "correct": 212,
+        "total": 1000,
+        "accuracy": 0.212
+      },
+      "only_npi_scope": {
+        "correct": 496,
+        "total": 1000,
+        "accuracy": 0.496
+      },
+      "passive_1": {
+        "correct": 853,
+        "total": 1000,
+        "accuracy": 0.853
+      },
+      "passive_2": {
+        "correct": 807,
+        "total": 1000,
+        "accuracy": 0.807
+      },
+      "principle_A_c_command": {
+        "correct": 431,
+        "total": 1000,
+        "accuracy": 0.431
+      },
+      "principle_A_case_1": {
+        "correct": 1000,
+        "total": 1000,
+        "accuracy": 1.0
+      },
+      "principle_A_case_2": {
+        "correct": 786,
+        "total": 1000,
+        "accuracy": 0.786
+      },
+      "principle_A_domain_1": {
+        "correct": 976,
+        "total": 1000,
+        "accuracy": 0.976
+      },
+      "principle_A_domain_2": {
+        "correct": 733,
+        "total": 1000,
+        "accuracy": 0.733
+      },
+      "principle_A_domain_3": {
+        "correct": 489,
+        "total": 1000,
+        "accuracy": 0.489
+      },
+      "principle_A_reconstruction": {
+        "correct": 426,
+        "total": 1000,
+        "accuracy": 0.426
+      },
+      "regular_plural_subject_verb_agreement_1": {
+        "correct": 797,
+        "total": 1000,
+        "accuracy": 0.797
+      },
+      "regular_plural_subject_verb_agreement_2": {
+        "correct": 788,
+        "total": 1000,
+        "accuracy": 0.788
+      },
+      "sentential_negation_npi_licensor_present": {
+        "correct": 999,
+        "total": 1000,
+        "accuracy": 0.999
+      },
+      "sentential_negation_npi_scope": {
+        "correct": 240,
+        "total": 1000,
+        "accuracy": 0.24
+      },
+      "sentential_subject_island": {
+        "correct": 537,
+        "total": 1000,
+        "accuracy": 0.537
+      },
+      "superlative_quantifiers_1": {
+        "correct": 790,
+        "total": 1000,
+        "accuracy": 0.79
+      },
+      "superlative_quantifiers_2": {
+        "correct": 720,
+        "total": 1000,
+        "accuracy": 0.72
+      },
+      "tough_vs_raising_1": {
+        "correct": 291,
+        "total": 1000,
+        "accuracy": 0.291
+      },
+      "tough_vs_raising_2": {
+        "correct": 778,
+        "total": 1000,
+        "accuracy": 0.778
+      },
+      "transitive": {
+        "correct": 740,
+        "total": 1000,
+        "accuracy": 0.74
+      },
+      "wh_island": {
+        "correct": 532,
+        "total": 1000,
+        "accuracy": 0.532
+      },
+      "wh_questions_object_gap": {
+        "correct": 465,
+        "total": 1000,
+        "accuracy": 0.465
+      },
+      "wh_questions_subject_gap": {
+        "correct": 841,
+        "total": 1000,
+        "accuracy": 0.841
+      },
+      "wh_questions_subject_gap_long_distance": {
+        "correct": 927,
+        "total": 1000,
+        "accuracy": 0.927
+      },
+      "wh_vs_that_no_gap": {
+        "correct": 935,
+        "total": 1000,
+        "accuracy": 0.935
+      },
+      "wh_vs_that_no_gap_long_distance": {
+        "correct": 954,
+        "total": 1000,
+        "accuracy": 0.954
+      },
+      "wh_vs_that_with_gap": {
+        "correct": 222,
+        "total": 1000,
+        "accuracy": 0.222
+      },
+      "wh_vs_that_with_gap_long_distance": {
+        "correct": 84,
+        "total": 1000,
+        "accuracy": 0.084
+      }
+    }
+  },
+  "sciq": {
+    "correct": 350,
+    "total": 1000,
+    "accuracy": 0.35
+  },
+  "arc_easy": {
+    "correct": 156,
+    "total": 570,
+    "accuracy": 0.2736842105263158
+  },
+  "piqa": {
+    "correct": 1024,
+    "total": 1838,
+    "accuracy": 0.5571273122959739
+  }
+}

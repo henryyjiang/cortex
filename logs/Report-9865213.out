@@ -1,0 +1,105 @@
+---------------------------------------
+Begin Slurm Prolog: Jun-12-2026 11:41:10
+Job ID:    9865213
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job5b_test_resume.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+Resuming from: runs/cortex-test/checkpoint_0000152
+Tokens so far: 4980736 | Training until: 9980736
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading EleutherAI/pythia-160m ...
+Params: 162,915,840 total, 162,915,840 trainable
+Layer split: Pre=3, Loop=6, Coda=3
+mu_rec=8, mu_bwd=4 (= ceil(8/2))
+Effective batch: 32768 tokens = 16 seqs x 2048 tok
+Grad accum: 4 | World size: 1
+Max steps: 304 | Warmup: 3 | Cooldown: 30
+Curriculum: mu_rec ramps 1->8 over 3800 steps
+Resumed from step 152, 4,980,736 tokens
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'EleutherAI/the_pile_deduplicated' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /storage/home/hcoda1/3/hjiang420/.netrc.
+wandb: Currently logged in as: henryyjiang42 (henryyjiang42-georgia-institute-of-technology) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run gn9pzc4m
+wandb: Tracking run with wandb version 0.27.0
+wandb: Run data is saved locally in runs/cortex-test/wandb/run-20260612_114242-gn9pzc4m
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Resuming run cortex-test
+wandb: ⭐️ View project at https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt-test
+wandb: 🚀 View run at https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt-test/runs/gn9pzc4m
+wandb: updating run metadata
+wandb: uploading wandb-summary.json
+wandb: 
+wandb: Run history:
+wandb: lti/contraction_factor ███████████▁▁▁▁
+wandb:      lti/spectral_norm ▁▁▁▅▅▅▅▅▅▅▅▅███
+wandb:        train/grad_norm ▂█▂▁▂▂▁▃▁▂▂▂▂▁▁
+wandb:             train/loss ▁▇▆▆▆▆▄▄▄▆▆▇▇▆█
+wandb:               train/lr ████████████▇▄▁
+wandb:           train/mean_T ▄▄▂▁▂▁▅▅▇▄▅▅▂█▂
+wandb:           train/mean_k ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         train/momentum ▁▁▂▂▃▃▄▄▅▆▆▇▇██
+wandb:           train/mu_bwd ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:           train/mu_rec ▁▁▁▁▁▁▁▁▁▁▁▁███
+wandb:                     +6 ...
+wandb: 
+wandb: Run summary:
+wandb: lti/contraction_factor 0.44531
+wandb:      lti/spectral_norm 0.45703
+wandb:        train/grad_norm 0.88672
+wandb:             train/loss 6.74533
+wandb:               train/lr 5e-05
+wandb:           train/mean_T 1.25
+wandb:           train/mean_k 1
+wandb:         train/momentum 0.94967
+wandb:           train/mu_bwd 1
+wandb:           train/mu_rec 2
+wandb:                     +6 ...
+wandb: 
+wandb: 🚀 View run cortex-test at: https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt-test/runs/gn9pzc4m
+wandb: ⭐️ View project at: https://wandb.ai/henryyjiang42-georgia-institute-of-technology/cortex-gpt-test
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: runs/cortex-test/wandb/run-20260612_114242-gn9pzc4m/logs
+step=   160 | loss=5.1645 | lr=3.00e-04 | wd=0.0477 | mom=0.9030 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.359 | tok/s=11,270 | tokens=0.01B
+step=   170 | loss=6.4534 | lr=3.00e-04 | wd=0.0444 | mom=0.9063 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=4.188 | tok/s=62,572 | tokens=0.01B
+step=   180 | loss=6.3729 | lr=3.00e-04 | wd=0.0411 | mom=0.9097 | T=1.2 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.430 | tok/s=60,973 | tokens=0.01B
+step=   190 | loss=6.2724 | lr=3.00e-04 | wd=0.0378 | mom=0.9130 | T=1.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.008 | tok/s=63,662 | tokens=0.01B
+step=   200 | loss=6.3107 | lr=3.00e-04 | wd=0.0345 | mom=0.9163 | T=1.2 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.164 | tok/s=64,176 | tokens=0.01B
+[step 200] Saved -> runs/cortex-test/checkpoint_0000200
+[step 200] Pruned -> runs/cortex-test/checkpoint_0000100
+step=   210 | loss=6.1847 | lr=3.00e-04 | wd=0.0312 | mom=0.9197 | T=1.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.328 | tok/s=57,156 | tokens=0.01B
+step=   220 | loss=5.7663 | lr=3.00e-04 | wd=0.0280 | mom=0.9230 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.086 | tok/s=63,804 | tokens=0.01B
+step=   230 | loss=5.8729 | lr=3.00e-04 | wd=0.0247 | mom=0.9263 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.617 | tok/s=62,169 | tokens=0.01B
+step=   240 | loss=5.8502 | lr=3.00e-04 | wd=0.0214 | mom=0.9297 | T=2.0 k=1.0 (mu_rec=1 mu_bwd=1) | grad=0.977 | tok/s=63,972 | tokens=0.01B
+step=   250 | loss=6.3186 | lr=3.00e-04 | wd=0.0181 | mom=0.9330 | T=1.5 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.148 | tok/s=60,110 | tokens=0.01B
+[step 250] Saved -> runs/cortex-test/checkpoint_0000250
+[step 250] Pruned -> runs/cortex-test/checkpoint_0000150
+step=   260 | loss=6.2896 | lr=3.00e-04 | wd=0.0148 | mom=0.9363 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.258 | tok/s=52,642 | tokens=0.01B
+step=   270 | loss=6.4074 | lr=3.00e-04 | wd=0.0115 | mom=0.9397 | T=1.8 k=1.0 (mu_rec=1 mu_bwd=1) | grad=1.258 | tok/s=61,344 | tokens=0.01B
+step=   280 | loss=6.4480 | lr=2.82e-04 | wd=0.0082 | mom=0.9430 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=1.383 | tok/s=57,482 | tokens=0.01B
+step=   290 | loss=6.3602 | lr=1.65e-04 | wd=0.0049 | mom=0.9463 | T=2.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.965 | tok/s=55,900 | tokens=0.01B
+step=   300 | loss=6.7453 | lr=4.81e-05 | wd=0.0016 | mom=0.9497 | T=1.2 k=1.0 (mu_rec=2 mu_bwd=1) | grad=0.887 | tok/s=57,547 | tokens=0.01B
+[step 300] Saved -> runs/cortex-test/checkpoint_0000300
+[step 300] Pruned -> runs/cortex-test/checkpoint_0000152
+[step 304] Saved -> runs/cortex-test/checkpoint_0000304
+[step 304] Pruned -> runs/cortex-test/checkpoint_0000200
+Training complete. 0.01B tokens, 304 steps.
+---------------------------------------
+Begin Slurm Epilog: Jun-12-2026 11:44:35
+Job ID:        9865213
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job5b_test_resume.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=00:27:20,vmem=0,walltime=00:03:25,mem=8645512K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-01-006-3-0
+---------------------------------------
