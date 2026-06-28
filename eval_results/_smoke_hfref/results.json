@@ -1,0 +1,12 @@
+{
+  "lambada": {
+    "correct": 6,
+    "total": 30,
+    "accuracy": 0.2
+  },
+  "sciq": {
+    "correct": 19,
+    "total": 30,
+    "accuracy": 0.6333333333333333
+  }
+}

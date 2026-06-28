@@ -1,0 +1,201 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading HF reference model: EleutherAI/pythia-160m-deduped@step3000
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|##########| 148/148 [00:00<00:00, 6715.53it/s]
+C:\Users\henry\miniconda3\envs\cortex\Lib\site-packages\huggingface_hub\file_download.py:138: UserWarning: `huggingface_hub` cache-system uses symlinks by default to efficiently store duplicated files but your machine does not support them in C:\Users\henry\.cache\huggingface\hub\datasets--nyu-mll--blimp. Caching files will still work but in a degraded version that might require more space on your disk. This warning can be disabled by setting the `HF_HUB_DISABLE_SYMLINKS_WARNING` environment variable. For more details, see https://huggingface.co/docs/huggingface_hub/how-to-cache#limitations.
+To support symlinks on Windows, you either need to activate Developer Mode or to run Python as an administrator. In order to activate developer mode, see this article: https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development
+  warnings.warn(message)
+T=1  tasks=['lambada', 'blimp', 'sciq', 'arc_easy', 'piqa']
+
+=======================================================
+Task: lambada
+=======================================================
+  [lambada] 500/5153  acc=0.2060
+  [lambada] 1000/5153  acc=0.2130
+  [lambada] 1500/5153  acc=0.2140
+  [lambada] 2000/5153  acc=0.2260
+  [lambada] 2500/5153  acc=0.2220
+  [lambada] 3000/5153  acc=0.2210
+  [lambada] 3500/5153  acc=0.2186
+  [lambada] 4000/5153  acc=0.2228
+  [lambada] 4500/5153  acc=0.2242
+  [lambada] 5000/5153  acc=0.2246
+  lambada: 1156/5153 = 0.2243
+
+=======================================================
+Task: blimp
+=======================================================
+  [blimp/adjunct_island] 818/1000 = 0.8180
+  [blimp/anaphor_gender_agreement] 858/1000 = 0.8580
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 26358.38 examples/s]
+  [blimp/anaphor_number_agreement] 967/1000 = 0.9670
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 145051.32 examples/s]
+  [blimp/animate_subject_passive] 740/1000 = 0.7400
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 155974.27 examples/s]
+  [blimp/animate_subject_trans] 765/1000 = 0.7650
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 113969.46 examples/s]
+  [blimp/causative] 705/1000 = 0.7050
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 136435.63 examples/s]
+  [blimp/complex_NP_island] 619/1000 = 0.6190
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 128628.07 examples/s]
+  [blimp/coordinate_structure_constraint_complex_left_branch] 403/1000 = 0.4030
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 140597.48 examples/s]
+  [blimp/coordinate_structure_constraint_object_extraction] 678/1000 = 0.6780
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 145660.84 examples/s]
+  [blimp/determiner_noun_agreement_1] 962/1000 = 0.9620
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 133372.68 examples/s]
+  [blimp/determiner_noun_agreement_2] 974/1000 = 0.9740
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 153953.31 examples/s]
+  [blimp/determiner_noun_agreement_irregular_1] 855/1000 = 0.8550
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 149791.22 examples/s]
+  [blimp/determiner_noun_agreement_irregular_2] 928/1000 = 0.9280
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 141939.22 examples/s]
+  [blimp/determiner_noun_agreement_with_adj_2] 909/1000 = 0.9090
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 109169.81 examples/s]
+  [blimp/determiner_noun_agreement_with_adj_irregular_1] 822/1000 = 0.8220
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 107584.88 examples/s]
+  [blimp/determiner_noun_agreement_with_adj_irregular_2] 879/1000 = 0.8790
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 118566.90 examples/s]
+  [blimp/determiner_noun_agreement_with_adjective_1] 925/1000 = 0.9250
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 123307.48 examples/s]
+  [blimp/distractor_agreement_relational_noun] 695/1000 = 0.6950
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 149008.95 examples/s]
+  [blimp/distractor_agreement_relative_clause] 436/1000 = 0.4360
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 102337.54 examples/s]
+  [blimp/drop_argument] 751/1000 = 0.7510
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 119553.74 examples/s]
+  [blimp/ellipsis_n_bar_1] 747/1000 = 0.7470
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 125724.77 examples/s]
+  [blimp/ellipsis_n_bar_2] 869/1000 = 0.8690
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 128039.07 examples/s]
+  [blimp/existential_there_object_raising] 773/1000 = 0.7730
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 125977.77 examples/s]
+  [blimp/existential_there_quantifiers_1] 927/1000 = 0.9270
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 123543.56 examples/s]
+  [blimp/existential_there_quantifiers_2] 415/1000 = 0.4150
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 148734.18 examples/s]
+  [blimp/existential_there_subject_raising] 828/1000 = 0.8280
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 121450.82 examples/s]
+  [blimp/expletive_it_object_raising] 740/1000 = 0.7400
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 158275.62 examples/s]
+  [blimp/inchoative] 556/1000 = 0.5560
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 66222.02 examples/s]
+  [blimp/intransitive] 734/1000 = 0.7340
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 152753.44 examples/s]
+  [blimp/irregular_past_participle_adjectives] 905/1000 = 0.9050
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 140212.07 examples/s]
+  [blimp/irregular_past_participle_verbs] 898/1000 = 0.8980
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 130712.54 examples/s]
+  [blimp/irregular_plural_subject_verb_agreement_1] 820/1000 = 0.8200
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 154685.75 examples/s]
+  [blimp/irregular_plural_subject_verb_agreement_2] 874/1000 = 0.8740
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 131540.61 examples/s]
+  [blimp/left_branch_island_echo_question] 375/1000 = 0.3750
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 123817.09 examples/s]
+  [blimp/left_branch_island_simple_question] 454/1000 = 0.4540
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 125841.70 examples/s]
+  [blimp/matrix_question_npi_licensor_present] 354/1000 = 0.3540
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 139401.22 examples/s]
+  [blimp/npi_present_1] 495/1000 = 0.4950
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 131946.14 examples/s]
+  [blimp/npi_present_2] 536/1000 = 0.5360
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 119516.27 examples/s]
+  [blimp/only_npi_licensor_present] 643/1000 = 0.6430
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 132941.49 examples/s]
+  [blimp/only_npi_scope] 722/1000 = 0.7220
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 118196.02 examples/s]
+  [blimp/passive_1] 901/1000 = 0.9010
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 149898.29 examples/s]
+  [blimp/passive_2] 884/1000 = 0.8840
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 147494.60 examples/s]
+  [blimp/principle_A_c_command] 501/1000 = 0.5010
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 132129.03 examples/s]
+  [blimp/principle_A_case_1] 1000/1000 = 1.0000
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 155673.24 examples/s]
+  [blimp/principle_A_case_2] 917/1000 = 0.9170
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 146280.61 examples/s]
+  [blimp/principle_A_domain_1] 994/1000 = 0.9940
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 140235.51 examples/s]
+  [blimp/principle_A_domain_2] 851/1000 = 0.8510
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 156043.90 examples/s]
+  [blimp/principle_A_domain_3] 506/1000 = 0.5060
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 145524.39 examples/s]
+  [blimp/principle_A_reconstruction] 371/1000 = 0.3710
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 120201.30 examples/s]
+  [blimp/regular_plural_subject_verb_agreement_1] 878/1000 = 0.8780
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 117586.32 examples/s]
+  [blimp/regular_plural_subject_verb_agreement_2] 918/1000 = 0.9180
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 147764.81 examples/s]
+  [blimp/sentential_negation_npi_licensor_present] 1000/1000 = 1.0000
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 143911.61 examples/s]
+  [blimp/sentential_negation_npi_scope] 592/1000 = 0.5920
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 141843.22 examples/s]
+  [blimp/sentential_subject_island] 286/1000 = 0.2860
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 124069.81 examples/s]
+  [blimp/superlative_quantifiers_1] 692/1000 = 0.6920
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 138079.54 examples/s]
+  [blimp/superlative_quantifiers_2] 680/1000 = 0.6800
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 157325.73 examples/s]
+  [blimp/tough_vs_raising_1] 517/1000 = 0.5170
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 146321.44 examples/s]
+  [blimp/tough_vs_raising_2] 810/1000 = 0.8100
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 136520.00 examples/s]
+  [blimp/transitive] 833/1000 = 0.8330
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 132979.42 examples/s]
+  [blimp/wh_island] 668/1000 = 0.6680
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 109067.61 examples/s]
+  [blimp/wh_questions_object_gap] 794/1000 = 0.7940
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 139498.59 examples/s]
+  [blimp/wh_questions_subject_gap] 938/1000 = 0.9380
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 130684.03 examples/s]
+  [blimp/wh_questions_subject_gap_long_distance] 927/1000 = 0.9270
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 125188.16 examples/s]
+  [blimp/wh_vs_that_no_gap] 977/1000 = 0.9770
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 137780.17 examples/s]
+  [blimp/wh_vs_that_no_gap_long_distance] 985/1000 = 0.9850
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 141384.21 examples/s]
+  [blimp/wh_vs_that_with_gap] 450/1000 = 0.4500
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|##########| 1000/1000 [00:00<00:00, 132116.55 examples/s]
+  [blimp/wh_vs_that_with_gap_long_distance] 198/1000 = 0.1980
+  blimp: 49422/67000 = 0.7376
+
+=======================================================
+Task: sciq
+=======================================================
+  [sciq] 200/1000  acc=0.5100
+  [sciq] 400/1000  acc=0.5400
+  [sciq] 600/1000  acc=0.5133
+  [sciq] 800/1000  acc=0.5238
+  [sciq] 1000/1000  acc=0.5130
+  sciq: 513/1000 = 0.5130
+
+=======================================================
+Task: arc_easy
+=======================================================
+  [arc_easy] 200/570  acc=0.2650
+  [arc_easy] 400/570  acc=0.2750
+  arc_easy: 158/570 = 0.2772
+
+=======================================================
+Task: piqa
+=======================================================
+  [piqa] 200/1838  acc=0.6250
+  [piqa] 400/1838  acc=0.6175
+  [piqa] 600/1838  acc=0.6117
+  [piqa] 800/1838  acc=0.6012
+  [piqa] 1000/1838  acc=0.5960
+  [piqa] 1200/1838  acc=0.5942
+  [piqa] 1400/1838  acc=0.5864
+  [piqa] 1600/1838  acc=0.5969
+  [piqa] 1800/1838  acc=0.5933
+  piqa: 1091/1838 = 0.5936
+
+Task                Correct    Total      Acc
+---------------------------------------------
+lambada                1156     5153   0.2243
+blimp                 49422    67000   0.7376
+sciq                    513     1000   0.5130
+arc_easy                158      570   0.2772
+piqa                   1091     1838   0.5936
+
+Results saved -> eval_results\hfref_step3000

@@ -193,9 +193,18 @@ class Muon(torch.optim.Optimizer):
 
                     # Newton-Schulz orthogonalisation
                     update = _zeropower_via_newtonschulz5(g_eff, steps=ns_steps)
-                    # Normalise scale: preserve RMS norm proportional to fan-ratio
-                    scale = max(1.0, g.shape[0] / g.shape[1]) ** 0.5
-                    update.mul_(scale)
+                    # RMS-match the update to a typical AdamW step.  The
+                    # orthogonalised update has per-element RMS ~ 1/sqrt(max(m,n)),
+                    # i.e. ~sqrt(max(m,n)) too small.  Paired with an AdamW-sized LR
+                    # (3e-4) the weight matrices moved ~30x slower per step than the
+                    # embeddings on the Adam fallback, leaving the bulk of the
+                    # network undertrained (the LAMBADA-catastrophic / BLIMP-mild
+                    # signature vs official Pythia at matched tokens).  Rescaling to
+                    # a shape-independent RMS of ~0.2 makes one AdamW-sized LR + WD
+                    # correct across every matrix shape, instead of needing a
+                    # separate ~0.02 Muon LR.  Ref: Liu et al. 2025, "Muon is
+                    # Scalable for LLM Training" (the 0.2*sqrt(max(m,n)) rule).
+                    update.mul_(0.2 * max(g.shape[0], g.shape[1]) ** 0.5)
 
                     if wd != 0.0:
                         p.mul_(1.0 - lr * wd)
@@ -556,7 +565,17 @@ def train(args: argparse.Namespace) -> None:
     torch.set_float32_matmul_precision("high")
     torch.backends.cudnn.benchmark = True
 
-    weight_dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float32
+    # Mixed precision with fp32 MASTER WEIGHTS.  Params + optimizer state live in
+    # fp32; only the forward matmuls run in bf16 under autocast.  Training the
+    # model in pure bf16 (params cast to bf16, optimizer updating them in place)
+    # silently drops small updates: `p*(1-lr*wd)` rounds to identity (weight decay
+    # becomes a no-op), Adam-fallback updates on the embedding / LM-head underflow
+    # ~15-240x, and the LR-cooldown anneal is pure rounding noise.  Keeping the
+    # master copy in fp32 fixes all of these; bf16 is used for compute only.
+    # `--dtype float32` opts out of autocast entirely (pure fp32).
+    param_dtype   = torch.float32
+    compute_dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float32
+    use_autocast  = (compute_dtype == torch.bfloat16) and torch.cuda.is_available()
     out_dir = Path(args.out_dir)
     if main:
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -574,7 +593,7 @@ def train(args: argparse.Namespace) -> None:
         model, cfg = _builder(
             model_name      = args.model_name,
             from_scratch    = True,
-            torch_dtype     = weight_dtype,
+            torch_dtype     = param_dtype,
             device_map      = str(device),
             grad_checkpoint = args.grad_checkpoint,
         )
@@ -605,7 +624,7 @@ def train(args: argparse.Namespace) -> None:
             model_name        = args.model_name,
             memory_slots      = args.memory_slots,
             memory_slots_iter = args.memory_slots_iter,
-            torch_dtype       = weight_dtype,
+            torch_dtype       = param_dtype,
             device_map        = str(device),
             from_scratch      = _from_scratch,
             scalable_init     = _scalable_init,
@@ -628,7 +647,7 @@ def train(args: argparse.Namespace) -> None:
         # µbwd = ⌈µrec/2⌉ enforced at init (Parcae App. I)
         cfg.mean_backprop_depth = enforce_mu_bwd(args.mean_recurrence)
 
-    model = model.to(device=device, dtype=weight_dtype)
+    model = model.to(device=device, dtype=param_dtype)
 
     # ── Cross-chunk segmenting (M_cross gradient path) ──────────────────────
     # The buffer write path only receives gradients when a LATER forward reads
@@ -873,25 +892,32 @@ def train(args: argparse.Namespace) -> None:
         # masked to the continuing document's positions — so the carried
         # state is document-correct instead of being zeroed on any EOS.
         S = args.seq_len
+        # Autocast wraps only the forward + loss: matmuls run in bf16 while params
+        # and the loss stay fp32.  backward() runs OUTSIDE autocast so gradients
+        # accumulate into the fp32 master weights (bf16 autocast needs no
+        # GradScaler — that is an fp16-only concern).
+        autocast_ctx = (torch.autocast(device_type="cuda", dtype=compute_dtype)
+                        if use_autocast else nullcontext())
         with ctx:
-            m_c: Optional[torch.Tensor] = None
-            seg_losses = []
-            for g in range(n_chunks):
-                sl  = slice(g * S, (g + 1) * S)
-                out = model(
-                    input_ids      = input_ids[:, sl],
-                    labels         = labels[:, sl],
-                    eos_mask       = eos_mask[:, sl] if has_buffer else None,
-                    num_steps      = num_steps_arg,
-                    m_cross_in     = m_c,
-                    return_m_cross = has_buffer and (g + 1) < n_chunks,
-                )
-                seg_losses.append(out["loss"])
+            with autocast_ctx:
+                m_c: Optional[torch.Tensor] = None
+                seg_losses = []
+                for g in range(n_chunks):
+                    sl  = slice(g * S, (g + 1) * S)
+                    out = model(
+                        input_ids      = input_ids[:, sl],
+                        labels         = labels[:, sl],
+                        eos_mask       = eos_mask[:, sl] if has_buffer else None,
+                        num_steps      = num_steps_arg,
+                        m_cross_in     = m_c,
+                        return_m_cross = has_buffer and (g + 1) < n_chunks,
+                    )
+                    seg_losses.append(out["loss"])
 
-                if has_buffer and (g + 1) < n_chunks:
-                    m_c = out["m_cross"]   # document-correct, kept in the graph
+                    if has_buffer and (g + 1) < n_chunks:
+                        m_c = out["m_cross"]   # document-correct, kept in the graph
 
-            micro_loss = torch.stack(seg_losses).mean()
+                micro_loss = torch.stack(seg_losses).mean()
             (micro_loss / grad_accum_steps).backward()
 
         loss_accum  += micro_loss.detach().item()

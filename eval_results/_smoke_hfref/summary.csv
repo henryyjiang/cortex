@@ -1,0 +1,3 @@
+task,correct,total,accuracy
+lambada,6,30,0.2000
+sciq,19,30,0.6333

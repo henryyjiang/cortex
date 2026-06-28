@@ -18,7 +18,7 @@ module load cuda/12.1.1
 conda activate cortex
 
 export WANDB_DIR=$SCRATCH
-export WANDB_PROJECT=cortex-gpt
+export WANDB_PROJECT=cortex-gpt-v2
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # NORMAL continuous chain-of-thought (Coconut-style) over the FULL transformer.
@@ -42,6 +42,6 @@ python train.py \
     --micro_batch_size 4 \
     --curriculum_steps 3800 \
     --out_dir runs/ccot-5b \
-    --wandb_project cortex-gpt \
+    --wandb_project cortex-gpt-v2 \
     --log_interval 10 \
     --save_interval 2000
