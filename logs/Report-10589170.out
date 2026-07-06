@@ -1,0 +1,22 @@
+---------------------------------------
+Begin Slurm Prolog: Jun-28-2026 18:27:33
+Job ID:    10589170
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job5b.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+[2026-06-28T18:27:53.698] error: *** JOB 10589170 ON atl1-1-01-006-9-0 CANCELLED AT 2026-06-28T18:27:53 DUE to SIGNAL Terminated ***
+---------------------------------------
+Begin Slurm Epilog: Jun-28-2026 18:27:56
+Job ID:        10589170
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job5b.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=00:02:40,vmem=0,walltime=00:00:20,mem=141192K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-01-006-9-0
+---------------------------------------

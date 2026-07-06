@@ -1,0 +1,695 @@
+---------------------------------------
+Begin Slurm Prolog: Jul-05-2026 12:25:33
+Job ID:    10795333
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job_eval_basic.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+[pythia-5b] runs/pythia-5b/checkpoint_0152584/checkpoint.pt
+[parcae-5b] runs/parcae-5b/checkpoint_0152584/checkpoint.pt
+[ccot-5b] runs/ccot-5b/checkpoint_0146146/checkpoint.pt
+[cortex-5b] runs/cortex-5b/checkpoint_0152584/checkpoint.pt
+[cortex-5b-k4] runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt
+============================================================
+Multiple choice
+============================================================
+[pythia-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/pythia-5b/checkpoint_0152584/checkpoint.pt
+T=1  tasks=['hellaswag', 'winogrande', 'arc_easy', 'arc_challenge', 'piqa']
+
+=======================================================
+Task: hellaswag
+=======================================================
+  [hellaswag] 200/10042  acc=0.3050
+  [hellaswag] 400/10042  acc=0.3125
+  [hellaswag] 600/10042  acc=0.3250
+  [hellaswag] 800/10042  acc=0.3312
+  [hellaswag] 1000/10042  acc=0.3270
+  [hellaswag] 1200/10042  acc=0.3258
+  [hellaswag] 1400/10042  acc=0.3293
+  [hellaswag] 1600/10042  acc=0.3225
+  [hellaswag] 1800/10042  acc=0.3206
+  [hellaswag] 2000/10042  acc=0.3140
+  [hellaswag] 2200/10042  acc=0.3150
+  [hellaswag] 2400/10042  acc=0.3167
+  [hellaswag] 2600/10042  acc=0.3181
+  [hellaswag] 2800/10042  acc=0.3182
+  [hellaswag] 3000/10042  acc=0.3230
+  [hellaswag] 3200/10042  acc=0.3234
+  [hellaswag] 3400/10042  acc=0.3200
+  [hellaswag] 3600/10042  acc=0.3153
+  [hellaswag] 3800/10042  acc=0.3121
+  [hellaswag] 4000/10042  acc=0.3063
+  [hellaswag] 4200/10042  acc=0.3045
+  [hellaswag] 4400/10042  acc=0.3032
+  [hellaswag] 4600/10042  acc=0.2991
+  [hellaswag] 4800/10042  acc=0.2950
+  [hellaswag] 5000/10042  acc=0.2928
+  [hellaswag] 5200/10042  acc=0.2898
+  [hellaswag] 5400/10042  acc=0.2878
+  [hellaswag] 5600/10042  acc=0.2873
+  [hellaswag] 5800/10042  acc=0.2859
+  [hellaswag] 6000/10042  acc=0.2860
+  [hellaswag] 6200/10042  acc=0.2845
+  [hellaswag] 6400/10042  acc=0.2853
+  [hellaswag] 6600/10042  acc=0.2847
+  [hellaswag] 6800/10042  acc=0.2846
+  [hellaswag] 7000/10042  acc=0.2844
+  [hellaswag] 7200/10042  acc=0.2831
+  [hellaswag] 7400/10042  acc=0.2824
+  [hellaswag] 7600/10042  acc=0.2808
+  [hellaswag] 7800/10042  acc=0.2808
+  [hellaswag] 8000/10042  acc=0.2790
+  [hellaswag] 8200/10042  acc=0.2788
+  [hellaswag] 8400/10042  acc=0.2782
+  [hellaswag] 8600/10042  acc=0.2766
+  [hellaswag] 8800/10042  acc=0.2761
+  [hellaswag] 9000/10042  acc=0.2759
+  [hellaswag] 9200/10042  acc=0.2766
+  [hellaswag] 9400/10042  acc=0.2759
+  [hellaswag] 9600/10042  acc=0.2751
+  [hellaswag] 9800/10042  acc=0.2741
+  [hellaswag] 10000/10042  acc=0.2748
+  hellaswag: 2757/10042 = 0.2745
+
+=======================================================
+Task: winogrande
+=======================================================
+  [winogrande] 200/1267  acc=0.5500
+  [winogrande] 400/1267  acc=0.5300
+  [winogrande] 600/1267  acc=0.5333
+  [winogrande] 800/1267  acc=0.5275
+  [winogrande] 1000/1267  acc=0.5180
+  [winogrande] 1200/1267  acc=0.5242
+  winogrande: 667/1267 = 0.5264
+
+=======================================================
+Task: arc_easy
+=======================================================
+  [arc_easy] 200/570  acc=0.3050
+  [arc_easy] 400/570  acc=0.3250
+  arc_easy: 172/570 = 0.3018
+
+=======================================================
+Task: arc_challenge
+=======================================================
+  [arc_challenge] 200/299  acc=0.2250
+  arc_challenge: 71/299 = 0.2375
+
+=======================================================
+Task: piqa
+=======================================================
+  [piqa] 200/1838  acc=0.6400
+  [piqa] 400/1838  acc=0.6375
+  [piqa] 600/1838  acc=0.6300
+  [piqa] 800/1838  acc=0.6150
+  [piqa] 1000/1838  acc=0.6230
+  [piqa] 1200/1838  acc=0.6175
+  [piqa] 1400/1838  acc=0.6100
+  [piqa] 1600/1838  acc=0.6144
+  [piqa] 1800/1838  acc=0.6106
+  piqa: 1121/1838 = 0.6099
+
+Task                Correct    Total      Acc
+---------------------------------------------
+hellaswag              2757    10042   0.2745
+winogrande              667     1267   0.5264
+arc_easy                172      570   0.3018
+arc_challenge            71      299   0.2375
+piqa                   1121     1838   0.6099
+
+Results saved → eval_results/basic_20260705_122536/multiple_choice/pythia-5b
+[parcae-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/parcae-5b/checkpoint_0152584/checkpoint.pt
+T=8  tasks=['hellaswag', 'winogrande', 'arc_easy', 'arc_challenge', 'piqa']
+
+=======================================================
+Task: hellaswag
+=======================================================
+  [hellaswag] 200/10042  acc=0.3150
+  [hellaswag] 400/10042  acc=0.3050
+  [hellaswag] 600/10042  acc=0.3267
+  [hellaswag] 800/10042  acc=0.3300
+  [hellaswag] 1000/10042  acc=0.3270
+  [hellaswag] 1200/10042  acc=0.3233
+  [hellaswag] 1400/10042  acc=0.3250
+  [hellaswag] 1600/10042  acc=0.3237
+  [hellaswag] 1800/10042  acc=0.3183
+  [hellaswag] 2000/10042  acc=0.3155
+  [hellaswag] 2200/10042  acc=0.3168
+  [hellaswag] 2400/10042  acc=0.3179
+  [hellaswag] 2600/10042  acc=0.3208
+  [hellaswag] 2800/10042  acc=0.3211
+  [hellaswag] 3000/10042  acc=0.3263
+  [hellaswag] 3200/10042  acc=0.3259
+  [hellaswag] 3400/10042  acc=0.3218
+  [hellaswag] 3600/10042  acc=0.3172
+  [hellaswag] 3800/10042  acc=0.3132
+  [hellaswag] 4000/10042  acc=0.3075
+  [hellaswag] 4200/10042  acc=0.3062
+  [hellaswag] 4400/10042  acc=0.3055
+  [hellaswag] 4600/10042  acc=0.3017
+  [hellaswag] 4800/10042  acc=0.2979
+  [hellaswag] 5000/10042  acc=0.2946
+  [hellaswag] 5200/10042  acc=0.2921
+  [hellaswag] 5400/10042  acc=0.2885
+  [hellaswag] 5600/10042  acc=0.2871
+  [hellaswag] 5800/10042  acc=0.2866
+  [hellaswag] 6000/10042  acc=0.2860
+  [hellaswag] 6200/10042  acc=0.2844
+  [hellaswag] 6400/10042  acc=0.2836
+  [hellaswag] 6600/10042  acc=0.2835
+  [hellaswag] 6800/10042  acc=0.2825
+  [hellaswag] 7000/10042  acc=0.2820
+  [hellaswag] 7200/10042  acc=0.2799
+  [hellaswag] 7400/10042  acc=0.2784
+  [hellaswag] 7600/10042  acc=0.2776
+  [hellaswag] 7800/10042  acc=0.2785
+  [hellaswag] 8000/10042  acc=0.2774
+  [hellaswag] 8200/10042  acc=0.2766
+  [hellaswag] 8400/10042  acc=0.2763
+  [hellaswag] 8600/10042  acc=0.2750
+  [hellaswag] 8800/10042  acc=0.2743
+  [hellaswag] 9000/10042  acc=0.2743
+  [hellaswag] 9200/10042  acc=0.2747
+  [hellaswag] 9400/10042  acc=0.2739
+  [hellaswag] 9600/10042  acc=0.2725
+  [hellaswag] 9800/10042  acc=0.2714
+  [hellaswag] 10000/10042  acc=0.2716
+  hellaswag: 2724/10042 = 0.2713
+
+=======================================================
+Task: winogrande
+=======================================================
+  [winogrande] 200/1267  acc=0.4950
+  [winogrande] 400/1267  acc=0.4725
+  [winogrande] 600/1267  acc=0.5000
+  [winogrande] 800/1267  acc=0.4975
+  [winogrande] 1000/1267  acc=0.4950
+  [winogrande] 1200/1267  acc=0.4933
+  winogrande: 628/1267 = 0.4957
+
+=======================================================
+Task: arc_easy
+=======================================================
+  [arc_easy] 200/570  acc=0.2850
+  [arc_easy] 400/570  acc=0.3075
+  arc_easy: 173/570 = 0.3035
+
+=======================================================
+Task: arc_challenge
+=======================================================
+  [arc_challenge] 200/299  acc=0.2250
+  arc_challenge: 68/299 = 0.2274
+
+=======================================================
+Task: piqa
+=======================================================
+  [piqa] 200/1838  acc=0.6200
+  [piqa] 400/1838  acc=0.5975
+  [piqa] 600/1838  acc=0.6033
+  [piqa] 800/1838  acc=0.5850
+  [piqa] 1000/1838  acc=0.5960
+  [piqa] 1200/1838  acc=0.6017
+  [piqa] 1400/1838  acc=0.5993
+  [piqa] 1600/1838  acc=0.6100
+  [piqa] 1800/1838  acc=0.6094
+  piqa: 1121/1838 = 0.6099
+
+Task                Correct    Total      Acc
+---------------------------------------------
+hellaswag              2724    10042   0.2713
+winogrande              628     1267   0.4957
+arc_easy                173      570   0.3035
+arc_challenge            68      299   0.2274
+piqa                   1121     1838   0.6099
+
+Results saved → eval_results/basic_20260705_122536/multiple_choice/parcae-5b
+[ccot-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/ccot-5b/checkpoint_0146146/checkpoint.pt
+T=8  tasks=['hellaswag', 'winogrande', 'arc_easy', 'arc_challenge', 'piqa']
+
+=======================================================
+Task: hellaswag
+=======================================================
+  [hellaswag] 200/10042  acc=0.3150
+  [hellaswag] 400/10042  acc=0.2950
+  [hellaswag] 600/10042  acc=0.3017
+  [hellaswag] 800/10042  acc=0.3137
+  [hellaswag] 1000/10042  acc=0.3200
+  [hellaswag] 1200/10042  acc=0.3142
+  [hellaswag] 1400/10042  acc=0.3150
+  [hellaswag] 1600/10042  acc=0.3137
+  [hellaswag] 1800/10042  acc=0.3117
+  [hellaswag] 2000/10042  acc=0.3050
+  [hellaswag] 2200/10042  acc=0.3091
+  [hellaswag] 2400/10042  acc=0.3121
+  [hellaswag] 2600/10042  acc=0.3115
+  [hellaswag] 2800/10042  acc=0.3125
+  [hellaswag] 3000/10042  acc=0.3157
+  [hellaswag] 3200/10042  acc=0.3187
+  [hellaswag] 3400/10042  acc=0.3135
+  [hellaswag] 3600/10042  acc=0.3083
+  [hellaswag] 3800/10042  acc=0.3039
+  [hellaswag] 4000/10042  acc=0.2978
+  [hellaswag] 4200/10042  acc=0.2976
+  [hellaswag] 4400/10042  acc=0.2959
+  [hellaswag] 4600/10042  acc=0.2911
+  [hellaswag] 4800/10042  acc=0.2869
+  [hellaswag] 5000/10042  acc=0.2848
+  [hellaswag] 5200/10042  acc=0.2808
+  [hellaswag] 5400/10042  acc=0.2780
+  [hellaswag] 5600/10042  acc=0.2770
+  [hellaswag] 5800/10042  acc=0.2769
+  [hellaswag] 6000/10042  acc=0.2758
+  [hellaswag] 6200/10042  acc=0.2752
+  [hellaswag] 6400/10042  acc=0.2742
+  [hellaswag] 6600/10042  acc=0.2733
+  [hellaswag] 6800/10042  acc=0.2728
+  [hellaswag] 7000/10042  acc=0.2719
+  [hellaswag] 7200/10042  acc=0.2699
+  [hellaswag] 7400/10042  acc=0.2692
+  [hellaswag] 7600/10042  acc=0.2682
+  [hellaswag] 7800/10042  acc=0.2682
+  [hellaswag] 8000/10042  acc=0.2669
+  [hellaswag] 8200/10042  acc=0.2665
+  [hellaswag] 8400/10042  acc=0.2663
+  [hellaswag] 8600/10042  acc=0.2652
+  [hellaswag] 8800/10042  acc=0.2648
+  [hellaswag] 9000/10042  acc=0.2640
+  [hellaswag] 9200/10042  acc=0.2639
+  [hellaswag] 9400/10042  acc=0.2632
+  [hellaswag] 9600/10042  acc=0.2625
+  [hellaswag] 9800/10042  acc=0.2611
+  [hellaswag] 10000/10042  acc=0.2611
+  hellaswag: 2619/10042 = 0.2608
+
+=======================================================
+Task: winogrande
+=======================================================
+  [winogrande] 200/1267  acc=0.4950
+  [winogrande] 400/1267  acc=0.5000
+  [winogrande] 600/1267  acc=0.5117
+  [winogrande] 800/1267  acc=0.5238
+  [winogrande] 1000/1267  acc=0.5280
+  [winogrande] 1200/1267  acc=0.5208
+  winogrande: 658/1267 = 0.5193
+
+=======================================================
+Task: arc_easy
+=======================================================
+  [arc_easy] 200/570  acc=0.2850
+  [arc_easy] 400/570  acc=0.2775
+  arc_easy: 159/570 = 0.2789
+
+=======================================================
+Task: arc_challenge
+=======================================================
+  [arc_challenge] 200/299  acc=0.2000
+  arc_challenge: 63/299 = 0.2107
+
+=======================================================
+Task: piqa
+=======================================================
+  [piqa] 200/1838  acc=0.5850
+  [piqa] 400/1838  acc=0.5825
+  [piqa] 600/1838  acc=0.5867
+  [piqa] 800/1838  acc=0.5775
+  [piqa] 1000/1838  acc=0.5810
+  [piqa] 1200/1838  acc=0.5833
+  [piqa] 1400/1838  acc=0.5757
+  [piqa] 1600/1838  acc=0.5837
+  [piqa] 1800/1838  acc=0.5850
+  piqa: 1074/1838 = 0.5843
+
+Task                Correct    Total      Acc
+---------------------------------------------
+hellaswag              2619    10042   0.2608
+winogrande              658     1267   0.5193
+arc_easy                159      570   0.2789
+arc_challenge            63      299   0.2107
+piqa                   1074     1838   0.5843
+
+Results saved → eval_results/basic_20260705_122536/multiple_choice/ccot-5b
+[cortex-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b/checkpoint_0152584/checkpoint.pt
+T=8  tasks=['hellaswag', 'winogrande', 'arc_easy', 'arc_challenge', 'piqa']
+
+=======================================================
+Task: hellaswag
+=======================================================
+  [hellaswag] 200/10042  acc=0.3250
+  [hellaswag] 400/10042  acc=0.3000
+  [hellaswag] 600/10042  acc=0.3117
+  [hellaswag] 800/10042  acc=0.3175
+  [hellaswag] 1000/10042  acc=0.3220
+  [hellaswag] 1200/10042  acc=0.3200
+  [hellaswag] 1400/10042  acc=0.3207
+  [hellaswag] 1600/10042  acc=0.3162
+  [hellaswag] 1800/10042  acc=0.3133
+  [hellaswag] 2000/10042  acc=0.3120
+  [hellaswag] 2200/10042  acc=0.3136
+  [hellaswag] 2400/10042  acc=0.3150
+  [hellaswag] 2600/10042  acc=0.3181
+  [hellaswag] 2800/10042  acc=0.3179
+  [hellaswag] 3000/10042  acc=0.3217
+  [hellaswag] 3200/10042  acc=0.3237
+  [hellaswag] 3400/10042  acc=0.3197
+  [hellaswag] 3600/10042  acc=0.3164
+  [hellaswag] 3800/10042  acc=0.3121
+  [hellaswag] 4000/10042  acc=0.3050
+  [hellaswag] 4200/10042  acc=0.3043
+  [hellaswag] 4400/10042  acc=0.3034
+  [hellaswag] 4600/10042  acc=0.2996
+  [hellaswag] 4800/10042  acc=0.2958
+  [hellaswag] 5000/10042  acc=0.2934
+  [hellaswag] 5200/10042  acc=0.2894
+  [hellaswag] 5400/10042  acc=0.2874
+  [hellaswag] 5600/10042  acc=0.2863
+  [hellaswag] 5800/10042  acc=0.2859
+  [hellaswag] 6000/10042  acc=0.2860
+  [hellaswag] 6200/10042  acc=0.2839
+  [hellaswag] 6400/10042  acc=0.2845
+  [hellaswag] 6600/10042  acc=0.2830
+  [hellaswag] 6800/10042  acc=0.2818
+  [hellaswag] 7000/10042  acc=0.2800
+  [hellaswag] 7200/10042  acc=0.2783
+  [hellaswag] 7400/10042  acc=0.2776
+  [hellaswag] 7600/10042  acc=0.2758
+  [hellaswag] 7800/10042  acc=0.2759
+  [hellaswag] 8000/10042  acc=0.2751
+  [hellaswag] 8200/10042  acc=0.2738
+  [hellaswag] 8400/10042  acc=0.2729
+  [hellaswag] 8600/10042  acc=0.2719
+  [hellaswag] 8800/10042  acc=0.2711
+  [hellaswag] 9000/10042  acc=0.2707
+  [hellaswag] 9200/10042  acc=0.2711
+  [hellaswag] 9400/10042  acc=0.2709
+  [hellaswag] 9600/10042  acc=0.2697
+  [hellaswag] 9800/10042  acc=0.2681
+  [hellaswag] 10000/10042  acc=0.2678
+  hellaswag: 2687/10042 = 0.2676
+
+=======================================================
+Task: winogrande
+=======================================================
+  [winogrande] 200/1267  acc=0.4500
+  [winogrande] 400/1267  acc=0.4700
+  [winogrande] 600/1267  acc=0.4917
+  [winogrande] 800/1267  acc=0.4963
+  [winogrande] 1000/1267  acc=0.4970
+  [winogrande] 1200/1267  acc=0.5008
+  winogrande: 634/1267 = 0.5004
+
+=======================================================
+Task: arc_easy
+=======================================================
+  [arc_easy] 200/570  acc=0.2500
+  [arc_easy] 400/570  acc=0.3125
+  arc_easy: 175/570 = 0.3070
+
+=======================================================
+Task: arc_challenge
+=======================================================
+  [arc_challenge] 200/299  acc=0.2100
+  arc_challenge: 69/299 = 0.2308
+
+=======================================================
+Task: piqa
+=======================================================
+  [piqa] 200/1838  acc=0.6400
+  [piqa] 400/1838  acc=0.6100
+  [piqa] 600/1838  acc=0.6217
+  [piqa] 800/1838  acc=0.6075
+  [piqa] 1000/1838  acc=0.6100
+  [piqa] 1200/1838  acc=0.6158
+  [piqa] 1400/1838  acc=0.6121
+  [piqa] 1600/1838  acc=0.6206
+  [piqa] 1800/1838  acc=0.6172
+  piqa: 1134/1838 = 0.6170
+
+Task                Correct    Total      Acc
+---------------------------------------------
+hellaswag              2687    10042   0.2676
+winogrande              634     1267   0.5004
+arc_easy                175      570   0.3070
+arc_challenge            69      299   0.2308
+piqa                   1134     1838   0.6170
+
+Results saved → eval_results/basic_20260705_122536/multiple_choice/cortex-5b
+[cortex-5b-k4]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt
+T=8  tasks=['hellaswag', 'winogrande', 'arc_easy', 'arc_challenge', 'piqa']
+
+=======================================================
+Task: hellaswag
+=======================================================
+  [hellaswag] 200/10042  acc=0.3000
+  [hellaswag] 400/10042  acc=0.3025
+  [hellaswag] 600/10042  acc=0.3217
+  [hellaswag] 800/10042  acc=0.3325
+  [hellaswag] 1000/10042  acc=0.3280
+  [hellaswag] 1200/10042  acc=0.3233
+  [hellaswag] 1400/10042  acc=0.3271
+  [hellaswag] 1600/10042  acc=0.3237
+  [hellaswag] 1800/10042  acc=0.3206
+  [hellaswag] 2000/10042  acc=0.3180
+  [hellaswag] 2200/10042  acc=0.3218
+  [hellaswag] 2400/10042  acc=0.3204
+  [hellaswag] 2600/10042  acc=0.3219
+  [hellaswag] 2800/10042  acc=0.3211
+  [hellaswag] 3000/10042  acc=0.3260
+  [hellaswag] 3200/10042  acc=0.3272
+  [hellaswag] 3400/10042  acc=0.3226
+  [hellaswag] 3600/10042  acc=0.3183
+  [hellaswag] 3800/10042  acc=0.3142
+  [hellaswag] 4000/10042  acc=0.3085
+  [hellaswag] 4200/10042  acc=0.3074
+  [hellaswag] 4400/10042  acc=0.3070
+  [hellaswag] 4600/10042  acc=0.3037
+  [hellaswag] 4800/10042  acc=0.2998
+  [hellaswag] 5000/10042  acc=0.2972
+  [hellaswag] 5200/10042  acc=0.2948
+  [hellaswag] 5400/10042  acc=0.2933
+  [hellaswag] 5600/10042  acc=0.2909
+  [hellaswag] 5800/10042  acc=0.2902
+  [hellaswag] 6000/10042  acc=0.2893
+  [hellaswag] 6200/10042  acc=0.2876
+  [hellaswag] 6400/10042  acc=0.2872
+  [hellaswag] 6600/10042  acc=0.2864
+  [hellaswag] 6800/10042  acc=0.2849
+  [hellaswag] 7000/10042  acc=0.2839
+  [hellaswag] 7200/10042  acc=0.2828
+  [hellaswag] 7400/10042  acc=0.2809
+  [hellaswag] 7600/10042  acc=0.2795
+  [hellaswag] 7800/10042  acc=0.2800
+  [hellaswag] 8000/10042  acc=0.2786
+  [hellaswag] 8200/10042  acc=0.2778
+  [hellaswag] 8400/10042  acc=0.2770
+  [hellaswag] 8600/10042  acc=0.2758
+  [hellaswag] 8800/10042  acc=0.2744
+  [hellaswag] 9000/10042  acc=0.2738
+  [hellaswag] 9200/10042  acc=0.2742
+  [hellaswag] 9400/10042  acc=0.2735
+  [hellaswag] 9600/10042  acc=0.2718
+  [hellaswag] 9800/10042  acc=0.2713
+  [hellaswag] 10000/10042  acc=0.2713
+  hellaswag: 2723/10042 = 0.2712
+
+=======================================================
+Task: winogrande
+=======================================================
+  [winogrande] 200/1267  acc=0.4850
+  [winogrande] 400/1267  acc=0.4850
+  [winogrande] 600/1267  acc=0.5017
+  [winogrande] 800/1267  acc=0.4950
+  [winogrande] 1000/1267  acc=0.4860
+  [winogrande] 1200/1267  acc=0.4908
+  winogrande: 625/1267 = 0.4933
+
+=======================================================
+Task: arc_easy
+=======================================================
+  [arc_easy] 200/570  acc=0.2750
+  [arc_easy] 400/570  acc=0.3150
+  arc_easy: 176/570 = 0.3088
+
+=======================================================
+Task: arc_challenge
+=======================================================
+  [arc_challenge] 200/299  acc=0.2350
+  arc_challenge: 76/299 = 0.2542
+
+=======================================================
+Task: piqa
+=======================================================
+  [piqa] 200/1838  acc=0.6400
+  [piqa] 400/1838  acc=0.6275
+  [piqa] 600/1838  acc=0.6183
+  [piqa] 800/1838  acc=0.6012
+  [piqa] 1000/1838  acc=0.6020
+  [piqa] 1200/1838  acc=0.6042
+  [piqa] 1400/1838  acc=0.5986
+  [piqa] 1600/1838  acc=0.6094
+  [piqa] 1800/1838  acc=0.6039
+  piqa: 1111/1838 = 0.6045
+
+Task                Correct    Total      Acc
+---------------------------------------------
+hellaswag              2723    10042   0.2712
+winogrande              625     1267   0.4933
+arc_easy                176      570   0.3088
+arc_challenge            76      299   0.2542
+piqa                   1111     1838   0.6045
+
+Results saved → eval_results/basic_20260705_122536/multiple_choice/cortex-5b-k4
+============================================================
+GSM8K
+============================================================
+[pythia-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/pythia-5b/checkpoint_0152584/checkpoint.pt
+T=1
+  100/1319  acc=0.0200
+  200/1319  acc=0.0100
+  300/1319  acc=0.0167
+  400/1319  acc=0.0175
+  500/1319  acc=0.0160
+  600/1319  acc=0.0150
+  700/1319  acc=0.0157
+  800/1319  acc=0.0187
+  900/1319  acc=0.0167
+  1000/1319  acc=0.0160
+  1100/1319  acc=0.0164
+  1200/1319  acc=0.0150
+  1300/1319  acc=0.0146
+
+GSM8K accuracy: 20/1319 = 0.0152
+Results saved → eval_results/basic_20260705_122536/gsm8k/pythia-5b
+[parcae-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/parcae-5b/checkpoint_0152584/checkpoint.pt
+T=8
+  100/1319  acc=0.0300
+  200/1319  acc=0.0150
+  300/1319  acc=0.0167
+  400/1319  acc=0.0125
+  500/1319  acc=0.0120
+  600/1319  acc=0.0117
+  700/1319  acc=0.0129
+  800/1319  acc=0.0112
+  900/1319  acc=0.0111
+  1000/1319  acc=0.0120
+  1100/1319  acc=0.0118
+  1200/1319  acc=0.0125
+  1300/1319  acc=0.0123
+
+GSM8K accuracy: 16/1319 = 0.0121
+Results saved → eval_results/basic_20260705_122536/gsm8k/parcae-5b
+[ccot-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/ccot-5b/checkpoint_0146146/checkpoint.pt
+T=8
+  100/1319  acc=0.0000
+  200/1319  acc=0.0050
+  300/1319  acc=0.0100
+  400/1319  acc=0.0150
+  500/1319  acc=0.0140
+  600/1319  acc=0.0117
+  700/1319  acc=0.0100
+  800/1319  acc=0.0112
+  900/1319  acc=0.0111
+  1000/1319  acc=0.0110
+  1100/1319  acc=0.0109
+  1200/1319  acc=0.0108
+  1300/1319  acc=0.0100
+
+GSM8K accuracy: 13/1319 = 0.0099
+Results saved → eval_results/basic_20260705_122536/gsm8k/ccot-5b
+[cortex-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b/checkpoint_0152584/checkpoint.pt
+T=8
+  100/1319  acc=0.0500
+  200/1319  acc=0.0300
+  300/1319  acc=0.0267
+  400/1319  acc=0.0225
+  500/1319  acc=0.0200
+  600/1319  acc=0.0200
+  700/1319  acc=0.0214
+  800/1319  acc=0.0200
+  900/1319  acc=0.0178
+  1000/1319  acc=0.0170
+  1100/1319  acc=0.0164
+  1200/1319  acc=0.0183
+  1300/1319  acc=0.0177
+
+GSM8K accuracy: 23/1319 = 0.0174
+Results saved → eval_results/basic_20260705_122536/gsm8k/cortex-5b
+[cortex-5b-k4]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt
+T=8
+  100/1319  acc=0.0200
+  200/1319  acc=0.0150
+  300/1319  acc=0.0133
+  400/1319  acc=0.0125
+  500/1319  acc=0.0140
+  600/1319  acc=0.0133
+  700/1319  acc=0.0129
+  800/1319  acc=0.0112
+  900/1319  acc=0.0100
+  1000/1319  acc=0.0110
+  1100/1319  acc=0.0118
+  1200/1319  acc=0.0108
+  1300/1319  acc=0.0108
+
+GSM8K accuracy: 14/1319 = 0.0106
+Results saved → eval_results/basic_20260705_122536/gsm8k/cortex-5b-k4
+============================================================
+Results
+============================================================
+
+Multiple choice — accuracy
+-----------------------------------------------------------------------------------------
+Model               hellaswag     winogrande       arc_easy  arc_challenge           piqa
+-----------------------------------------------------------------------------------------
+pythia-5b              0.2745         0.5264         0.3018         0.2375         0.6099
+parcae-5b              0.2713         0.4957         0.3035         0.2274         0.6099
+ccot-5b                0.2608         0.5193         0.2789         0.2107         0.5843
+cortex-5b              0.2676         0.5004         0.3070         0.2308         0.6170
+cortex-5b-k4           0.2712         0.4933         0.3088         0.2542         0.6045
+-----------------------------------------------------------------------------------------
+
+GSM8K — accuracy (8-shot)
+------------------------
+Model           Accuracy
+------------------------
+pythia-5b         0.0152
+parcae-5b         0.0121
+ccot-5b           0.0099
+cortex-5b         0.0174
+cortex-5b-k4      0.0106
+------------------------
+
+Done.
+Results written to eval_results/basic_20260705_122536
+---------------------------------------
+Begin Slurm Epilog: Jul-06-2026 05:53:54
+Job ID:        10795333
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job_eval_basic.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=5-19:46:56,vmem=0,walltime=17:28:22,mem=3707224K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-01-006-5-0
+---------------------------------------

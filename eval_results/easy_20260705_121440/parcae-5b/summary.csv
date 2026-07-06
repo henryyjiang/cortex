@@ -1,0 +1,6 @@
+task,correct,total,accuracy
+lambada,1458,5153,0.2829
+blimp,52347,67000,0.7813
+sciq,512,1000,0.5120
+arc_easy,175,570,0.3070
+piqa,1120,1838,0.6094
