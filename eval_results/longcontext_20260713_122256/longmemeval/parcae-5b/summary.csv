@@ -1,0 +1,6 @@
+model,bucket,correct,total,accuracy
+parcae-5b,≤5turns,3,200,0.0150
+parcae-5b,≤10turns,0,3,0.0000
+parcae-5b,≤20turns,0,0,0.0000
+parcae-5b,≤50turns,0,0,0.0000
+parcae-5b,>50turns,0,0,0.0000
