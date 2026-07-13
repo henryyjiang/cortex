@@ -1,0 +1,206 @@
+---------------------------------------
+Begin Slurm Prolog: Jul-13-2026 03:07:51
+Job ID:    11085620
+User ID:   hjiang420
+Account:   gts-aivanova7-lab
+Job name:  job_eval_longcontext.sh
+Partition: gpu-a100
+QOS:       inferno
+---------------------------------------
+
+CondaError: Run 'conda init' before 'conda deactivate'
+
+[pythia-5b] runs/pythia-5b/checkpoint_0152584/checkpoint.pt
+[parcae-5b] runs/parcae-5b/checkpoint_0152584/checkpoint.pt
+[ccot-5b] runs/ccot-5b/checkpoint_0146146/checkpoint.pt
+[cortex-5b] runs/cortex-5b/checkpoint_0152584/checkpoint.pt
+[cortex-5b-k4] runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt
+============================================================
+BABILong
+============================================================
+[pythia-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/pythia-5b/checkpoint_0152584/checkpoint.pt
+T=1  tasks=['qa1', 'qa2', 'qa3']
+
+--- qa1 ---
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 238, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 199, in main
+    task_results = run_task(task, model, tokenizer, T, args.seq_len,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 121, in run_task
+    raise FileNotFoundError(
+FileNotFoundError: BABILong file not found: data/BABILong/data/qa1/1k.json
+Expected snapshot layout data/<task>/<length>.json. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/BABILong) and pass that path via --dataset_path.
+[parcae-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/parcae-5b/checkpoint_0152584/checkpoint.pt
+T=8  tasks=['qa1', 'qa2', 'qa3']
+
+--- qa1 ---
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 238, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 199, in main
+    task_results = run_task(task, model, tokenizer, T, args.seq_len,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 121, in run_task
+    raise FileNotFoundError(
+FileNotFoundError: BABILong file not found: data/BABILong/data/qa1/1k.json
+Expected snapshot layout data/<task>/<length>.json. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/BABILong) and pass that path via --dataset_path.
+[ccot-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/ccot-5b/checkpoint_0146146/checkpoint.pt
+T=8  tasks=['qa1', 'qa2', 'qa3']
+
+--- qa1 ---
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 238, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 199, in main
+    task_results = run_task(task, model, tokenizer, T, args.seq_len,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 121, in run_task
+    raise FileNotFoundError(
+FileNotFoundError: BABILong file not found: data/BABILong/data/qa1/1k.json
+Expected snapshot layout data/<task>/<length>.json. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/BABILong) and pass that path via --dataset_path.
+[cortex-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b/checkpoint_0152584/checkpoint.pt
+T=8  tasks=['qa1', 'qa2', 'qa3']
+
+--- qa1 ---
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 238, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 199, in main
+    task_results = run_task(task, model, tokenizer, T, args.seq_len,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 121, in run_task
+    raise FileNotFoundError(
+FileNotFoundError: BABILong file not found: data/BABILong/data/qa1/1k.json
+Expected snapshot layout data/<task>/<length>.json. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/BABILong) and pass that path via --dataset_path.
+[cortex-5b-k4]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt
+T=8  tasks=['qa1', 'qa2', 'qa3']
+
+--- qa1 ---
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 238, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 199, in main
+    task_results = run_task(task, model, tokenizer, T, args.seq_len,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_babilong.py", line 121, in run_task
+    raise FileNotFoundError(
+FileNotFoundError: BABILong file not found: data/BABILong/data/qa1/1k.json
+Expected snapshot layout data/<task>/<length>.json. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/BABILong) and pass that path via --dataset_path.
+============================================================
+LongMemEval
+============================================================
+[pythia-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/pythia-5b/checkpoint_0152584/checkpoint.pt
+T=1
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 234, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 205, in main
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 125, in run_eval
+    raise FileNotFoundError(
+FileNotFoundError: Could not find longmemeval_oracle/m/s in data/LongMemEval. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/LongMemEval) and pass that path via --dataset_path.
+[parcae-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/parcae-5b/checkpoint_0152584/checkpoint.pt
+T=8
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 234, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 205, in main
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 125, in run_eval
+    raise FileNotFoundError(
+FileNotFoundError: Could not find longmemeval_oracle/m/s in data/LongMemEval. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/LongMemEval) and pass that path via --dataset_path.
+[ccot-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/ccot-5b/checkpoint_0146146/checkpoint.pt
+T=8
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 234, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 205, in main
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 125, in run_eval
+    raise FileNotFoundError(
+FileNotFoundError: Could not find longmemeval_oracle/m/s in data/LongMemEval. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/LongMemEval) and pass that path via --dataset_path.
+[cortex-5b]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b/checkpoint_0152584/checkpoint.pt
+T=8
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 234, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 205, in main
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 125, in run_eval
+    raise FileNotFoundError(
+FileNotFoundError: Could not find longmemeval_oracle/m/s in data/LongMemEval. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/LongMemEval) and pass that path via --dataset_path.
+[cortex-5b-k4]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading checkpoint: runs/cortex-5b-k4/checkpoint_0152584/checkpoint.pt
+T=8
+Traceback (most recent call last):
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 234, in <module>
+    main()
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 205, in main
+    results = run_eval(model, tokenizer, T, args.seq_len, args.max_examples, args.depth_buckets,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/storage/home/hcoda1/3/hjiang420/cortex/evals/eval_longmemeval.py", line 125, in run_eval
+    raise FileNotFoundError(
+FileNotFoundError: Could not find longmemeval_oracle/m/s in data/LongMemEval. Run `python evals/download_datasets.py` on a login node (it downloads to <repo>/data/LongMemEval) and pass that path via --dataset_path.
+============================================================
+Results
+============================================================
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/pythia-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/parcae-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/ccot-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/cortex-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/cortex-5b-k4/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/pythia-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/parcae-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/ccot-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/cortex-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/cortex-5b-k4/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/pythia-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/parcae-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/ccot-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/cortex-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/babilong/cortex-5b-k4/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/longmemeval/pythia-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/longmemeval/parcae-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/longmemeval/ccot-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/longmemeval/cortex-5b/results.json
+  WARNING: missing eval_results/longcontext_20260713_030754/longmemeval/cortex-5b-k4/results.json
+
+Done.
+Results written to eval_results/longcontext_20260713_030754
+---------------------------------------
+Begin Slurm Epilog: Jul-13-2026 03:10:50
+Job ID:        11085620
+User ID:       hjiang420
+Account:       gts-aivanova7-lab
+Job name:      job_eval_longcontext.sh
+Resources:     cpu=8,gres/gpu:a100=1,mem=64G,node=1
+Rsrc Used:     cput=00:23:52,vmem=0,walltime=00:02:59,mem=6225532K,energy_used=0
+Partition:     gpu-a100
+QOS:           inferno
+Nodes:         atl1-1-02-018-27-0
+---------------------------------------
