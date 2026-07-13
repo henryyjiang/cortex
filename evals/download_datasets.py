@@ -1,4 +1,4 @@
-"""
+﻿"""
 Download eval datasets to local disk for use on compute nodes without internet.
 
 Run once on a login node:
@@ -16,7 +16,10 @@ ROOT.mkdir(exist_ok=True)
 
 token = os.environ.get("HF_TOKEN") or None
 
-if not (ROOT / "LongMemEval" / "longmemeval_oracle").exists():
+# longmemeval_s is what eval_longmemeval.py now uses by default (the real
+# ~115k-token haystack); check for it, not oracle, so a partial old download
+# gets re-fetched instead of skipped forever.
+if not (ROOT / "LongMemEval" / "longmemeval_s").exists():
     print("Downloading xiaowu0162/LongMemEval ...")
     snapshot_download(
         repo_id   = "xiaowu0162/LongMemEval",
@@ -24,12 +27,12 @@ if not (ROOT / "LongMemEval" / "longmemeval_oracle").exists():
         local_dir = str(ROOT / "LongMemEval"),
         token     = token,
     )
-    print(f"Saved → {ROOT / 'LongMemEval'}")
+    print(f"Saved â†’ {ROOT / 'LongMemEval'}")
 else:
     print("xiaowu0162/LongMemEval already present, skipping.")
 
 # Layout (verified): data/<task>/<length>.json.  Restrict to lengths up to
-# 128k — the 256k/512k/1M/10M files are multi-GB and not used by the evals;
+# 128k â€” the 256k/512k/1M/10M files are multi-GB and not used by the evals;
 # downloading them is slow enough that snapshots were left incomplete.
 BABILONG_LENGTHS = ("0k", "1k", "2k", "4k", "8k", "16k", "32k", "64k", "128k")
 
@@ -44,4 +47,4 @@ else:
         allow_patterns = [f"data/*/{length}.json" for length in BABILONG_LENGTHS],
         token          = token,
     )
-    print(f"Saved → {ROOT / 'BABILong'}")
+    print(f"Saved â†’ {ROOT / 'BABILong'}")

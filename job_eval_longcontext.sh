@@ -24,6 +24,26 @@ mkdir -p "$RESULTS_DIR"
 LONGMEMEVAL_PATH="data/LongMemEval"
 BABILONG_PATH="data/BABILong"
 
+# Chunking matched to training: cortex-main trains with seq_len=2048
+# sub-windows and cross_chunks=4 (auto for K>0 / ccot_direct), so
+# NUM_CHUNKS=4 + SEQ_LEN=2048 reproduces the trained buffer regime
+# (3 gated updates before the final read).  Multi-pass ablation knobs
+# default off; see cortex-finetune/pace/eval_longcontext.sbatch for the
+# FLOP-matched ladder rationale.
+SEQ_LEN=${SEQ_LEN:-2048}
+NUM_CHUNKS=${NUM_CHUNKS:-4}
+PASSES_PER_CHUNK=${PASSES_PER_CHUNK:-1}
+CCOT_PASSES=${CCOT_PASSES:-0}
+
+# Second eval mode per model: NO-CHUNK — full context in one 2048-token
+# window (the pythia-160m position limit; longer contexts fall back to
+# 2048-token chunks) with 4 silent full passes carrying the buffer
+# (latent multi-pass), then generate.  Results land in *-nochunk/ dirs.
+# For models without cross state (pythia/parcae) the passes are no-ops —
+# their no-chunk arm is the plain full-attention control.
+SKIP_NOCHUNK=${SKIP_NOCHUNK:-false}
+NOCHUNK_CCOT_PASSES=${NOCHUNK_CCOT_PASSES:-4}
+
 # Model run directories.  The latest checkpoint in each is auto-discovered, so
 # this keeps working as the runs advance (no hardcoded step numbers).
 declare -A RUN_DIR=(
@@ -69,8 +89,22 @@ for MODEL in "${MODELS[@]}"; do
         --checkpoint "${CKPTS[$MODEL]}" \
         ${T_FLAG[$MODEL]} \
         --tasks qa1 qa2 qa3 \
+        --seq_len $SEQ_LEN \
+        --num_chunks $NUM_CHUNKS \
+        --passes_per_chunk $PASSES_PER_CHUNK \
+        --ccot_passes $CCOT_PASSES \
         --dataset_path "$BABILONG_PATH" \
         --out_dir "$RESULTS_DIR/babilong/$MODEL"
+    [ "$SKIP_NOCHUNK" = "true" ] || \
+    python evals/eval_babilong.py \
+        --checkpoint "${CKPTS[$MODEL]}" \
+        ${T_FLAG[$MODEL]} \
+        --tasks qa1 qa2 qa3 \
+        --seq_len 2048 \
+        --num_chunks 1 \
+        --ccot_passes $NOCHUNK_CCOT_PASSES \
+        --dataset_path "$BABILONG_PATH" \
+        --out_dir "$RESULTS_DIR/babilong-nochunk/$MODEL"
 done
 
 # ── LongMemEval ───────────────────────────────────────────────────────────────
@@ -83,8 +117,21 @@ for MODEL in "${MODELS[@]}"; do
     python evals/eval_longmemeval.py \
         --checkpoint "${CKPTS[$MODEL]}" \
         ${T_FLAG[$MODEL]} \
+        --seq_len $SEQ_LEN \
+        --num_chunks $NUM_CHUNKS \
+        --passes_per_chunk $PASSES_PER_CHUNK \
+        --ccot_passes $CCOT_PASSES \
         --dataset_path "$LONGMEMEVAL_PATH" \
         --out_dir "$RESULTS_DIR/longmemeval/$MODEL"
+    [ "$SKIP_NOCHUNK" = "true" ] || \
+    python evals/eval_longmemeval.py \
+        --checkpoint "${CKPTS[$MODEL]}" \
+        ${T_FLAG[$MODEL]} \
+        --seq_len 2048 \
+        --num_chunks 1 \
+        --ccot_passes $NOCHUNK_CCOT_PASSES \
+        --dataset_path "$LONGMEMEVAL_PATH" \
+        --out_dir "$RESULTS_DIR/longmemeval-nochunk/$MODEL"
 done
 
 # ── Aggregate into tables ──────────────────────────────────────────────────────
